@@ -166,11 +166,16 @@ require("lazy").setup({
     "max397574/better-escape.nvim",
     config = function()
       require("better_escape").setup({
-        mapping = {"jk", "jj"},
+        mapping = { "jk", "jj" },
         timeout = 200,
       })
     end,
   },
+  -- ThePrimeagen's motion practice game
+  {
+    "ThePrimeagen/vim-be-good",
+    cmd = "VimBeGood", -- lazy-load on command
+  }
 })
 
 -- Keymaps
