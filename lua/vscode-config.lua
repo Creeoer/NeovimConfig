@@ -1,192 +1,89 @@
 -- ~/.config/nvim/lua/vscode-config.lua
--- VSCode Neovim Configuration
+if not vim.g.vscode then return end
 
-local keymap = vim.keymap.set
-
--- Set options
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.clipboard = "unnamedplus"
 
+local vs = require("vscode")
+local map = vim.keymap.set
+local opts = { silent = true }
+
 -- ========================================
 -- FILE NAVIGATION
 -- ========================================
-keymap('n', '<leader>p', "<Cmd>call VSCodeNotify('workbench.action.quickOpen')<CR>")
-keymap('n', '<leader>ff', "<Cmd>call VSCodeNotify('workbench.action.quickOpen')<CR>")
-keymap('n', '<leader>fg', "<Cmd>call VSCodeNotify('workbench.action.findInFiles')<CR>")
-keymap('n', '<leader>fb', "<Cmd>call VSCodeNotify('workbench.action.showAllEditors')<CR>")
-keymap('n', '<leader>fr', "<Cmd>call VSCodeNotify('workbench.action.openRecent')<CR>")
-keymap('n', '<leader>e', "<Cmd>call VSCodeNotify('workbench.files.action.focusFilesExplorer')<CR>")
-
--- Tab navigation
-keymap('n', '<leader>h', "<Cmd>call VSCodeNotify('workbench.action.previousEditor')<CR>")
-keymap('n', '<leader>l', "<Cmd>call VSCodeNotify('workbench.action.nextEditor')<CR>")
-keymap('n', 'H', "<Cmd>call VSCodeNotify('workbench.action.previousEditor')<CR>")
-keymap('n', 'L', "<Cmd>call VSCodeNotify('workbench.action.nextEditor')<CR>")
-
--- File operations
-keymap('n', '<leader>w', "<Cmd>call VSCodeNotify('workbench.action.files.save')<CR>")
-keymap('n', '<leader>W', "<Cmd>call VSCodeNotify('workbench.action.files.saveAll')<CR>")
-keymap('n', '<leader>q', "<Cmd>call VSCodeNotify('workbench.action.closeActiveEditor')<CR>")
-keymap('n', '<leader>Q', "<Cmd>call VSCodeNotify('workbench.action.closeAllEditors')<CR>")
-keymap('n', '<leader>x', "<Cmd>call VSCodeNotify('workbench.action.closeActiveEditor')<CR>")
+map("n", "<leader>ff", function() vs.action("workbench.action.quickOpen") end, opts)
+map("n", "<leader>fg", function() vs.action("workbench.action.findInFiles") end, opts)
+map("n", "<leader>fb", function() vs.action("workbench.action.showAllEditors") end, opts)
+map("n", "<leader>fr", function() vs.action("workbench.action.openRecent") end, opts)
+map("n", "<leader>e", function() vs.action("workbench.files.action.focusFilesExplorer") end, opts)
 
 -- ========================================
--- WINDOW/SPLIT MANAGEMENT
+-- EDITOR / TAB NAVIGATION
 -- ========================================
-keymap('n', '<leader>v', "<Cmd>call VSCodeNotify('workbench.action.splitEditorRight')<CR>")
-keymap('n', '<leader>s', "<Cmd>call VSCodeNotify('workbench.action.splitEditorDown')<CR>")
-keymap('n', '<leader>sv', "<Cmd>call VSCodeNotify('workbench.action.splitEditor')<CR>")
-keymap('n', '<leader>sh', "<Cmd>call VSCodeNotify('workbench.action.splitEditorOrthogonal')<CR>")
-keymap('n', '<leader>sc', "<Cmd>call VSCodeNotify('workbench.action.closeEditorsInGroup')<CR>")
-keymap('n', '<leader>so', "<Cmd>call VSCodeNotify('workbench.action.closeOtherEditors')<CR>")
-
--- Navigate between splits
-keymap('n', '<C-h>', "<Cmd>call VSCodeNotify('workbench.action.focusLeftGroup')<CR>")
-keymap('n', '<C-j>', "<Cmd>call VSCodeNotify('workbench.action.focusBelowGroup')<CR>")
-keymap('n', '<C-k>', "<Cmd>call VSCodeNotify('workbench.action.focusAboveGroup')<CR>")
-keymap('n', '<C-l>', "<Cmd>call VSCodeNotify('workbench.action.focusRightGroup')<CR>")
-
--- Move editors between groups
-keymap('n', '<leader>mh', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToLeftGroup')<CR>")
-keymap('n', '<leader>ml', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToRightGroup')<CR>")
-keymap('n', '<leader>mj', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToBelowGroup')<CR>")
-keymap('n', '<leader>mk', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToAboveGroup')<CR>")
+map("n", "<leader>h", function() vs.action("workbench.action.previousEditor") end, opts)
+map("n", "<leader>l", function() vs.action("workbench.action.nextEditor") end, opts)
 
 -- ========================================
--- NAVIGATION & GOTO
+-- WINDOW / SPLIT MANAGEMENT
 -- ========================================
-keymap('n', 'gd', "<Cmd>call VSCodeNotify('editor.action.revealDefinition')<CR>")
-keymap('n', 'gD', "<Cmd>call VSCodeNotify('editor.action.revealDeclaration')<CR>")
-keymap('n', 'gi', "<Cmd>call VSCodeNotify('editor.action.goToImplementation')<CR>")
-keymap('n', 'gr', "<Cmd>call VSCodeNotify('editor.action.goToReferences')<CR>")
-keymap('n', 'gt', "<Cmd>call VSCodeNotify('editor.action.goToTypeDefinition')<CR>")
-keymap('n', 'gh', "<Cmd>call VSCodeNotify('editor.action.showHover')<CR>")
-keymap('n', 'gf', "<Cmd>call VSCodeNotify('editor.action.revealDefinition')<CR>")
+map("n", "<leader>v", function() vs.action("workbench.action.splitEditorRight") end, opts)
+map("n", "<leader>s", function() vs.action("workbench.action.splitEditorDown") end, opts)
+map("n", "<leader>sc", function() vs.action("workbench.action.closeEditorsInGroup") end, opts)
+map("n", "<leader>so", function() vs.action("workbench.action.closeOtherEditors") end, opts)
 
--- Symbol navigation
-keymap('n', '<leader>S', "<Cmd>call VSCodeNotify('workbench.action.gotoSymbol')<CR>")
-keymap('n', '<leader>s', "<Cmd>call VSCodeNotify('workbench.action.showAllSymbols')<CR>")
+map("n", "<C-h>", function() vs.action("workbench.action.focusLeftGroup") end, opts)
+map("n", "<C-j>", function() vs.action("workbench.action.focusBelowGroup") end, opts)
+map("n", "<C-k>", function() vs.action("workbench.action.focusAboveGroup") end, opts)
+map("n", "<C-l>", function() vs.action("workbench.action.focusRightGroup") end, opts)
+
+map("n", "<leader>mh", function() vs.action("workbench.action.moveEditorToLeftGroup") end, opts)
+map("n", "<leader>ml", function() vs.action("workbench.action.moveEditorToRightGroup") end, opts)
+map("n", "<leader>mj", function() vs.action("workbench.action.moveEditorToBelowGroup") end, opts)
+map("n", "<leader>mk", function() vs.action("workbench.action.moveEditorToAboveGroup") end, opts)
 
 -- ========================================
--- CODE ACTIONS & REFACTORING
+-- FILE OPERATIONS
 -- ========================================
-keymap('n', '<leader>ca', "<Cmd>call VSCodeNotify('editor.action.quickFix')<CR>")
-keymap('n', '<leader>rn', "<Cmd>call VSCodeNotify('editor.action.rename')<CR>")
-keymap('n', '<leader>fm', "<Cmd>call VSCodeNotify('editor.action.formatDocument')<CR>")
-keymap('v', '<leader>fm', "<Cmd>call VSCodeNotify('editor.action.formatSelection')<CR>")
-keymap('n', '<leader>rf', "<Cmd>call VSCodeNotify('editor.action.refactor')<CR>")
-keymap('n', '<leader>oi', "<Cmd>call VSCodeNotify('editor.action.organizeImports')<CR>")
-
--- Show hover/documentation
-keymap('n', 'K', "<Cmd>call VSCodeNotify('editor.action.showHover')<CR>")
-
--- Diagnostics
-keymap('n', '[d', "<Cmd>call VSCodeNotify('editor.action.marker.prev')<CR>")
-keymap('n', ']d', "<Cmd>call VSCodeNotify('editor.action.marker.next')<CR>")
-keymap('n', '<leader>d', "<Cmd>call VSCodeNotify('workbench.actions.view.problems')<CR>")
+map("n", "<leader>w", function() vs.action("workbench.action.files.save") end, opts)
+map("n", "<leader>W", function() vs.action("workbench.action.files.saveAll") end, opts)
+map("n", "<leader>q", function() vs.action("workbench.action.closeActiveEditor") end, opts)
+map("n", "<leader>Q", function() vs.action("workbench.action.closeAllEditors") end, opts)
 
 -- ========================================
 -- SEARCH & REPLACE
 -- ========================================
-keymap('n', '<leader>/', "<Cmd>call VSCodeNotify('workbench.action.findInFiles')<CR>")
-keymap('n', '<leader>R', "<Cmd>call VSCodeNotify('editor.action.startFindReplaceAction')<CR>")
-keymap('n', '*', "<Cmd>call VSCodeNotify('editor.action.wordHighlight.next')<CR>")
-keymap('n', '#', "<Cmd>call VSCodeNotify('editor.action.wordHighlight.prev')<CR>")
+map("n", "<leader>/", function() vs.action("workbench.action.findInFiles") end, opts)
+map("n", "<leader>R", function() vs.action("editor.action.startFindReplaceAction") end, opts)
+
+-- ========================================
+-- DIAGNOSTICS
+-- ========================================
+map("n", "[d", function() vs.action("editor.action.marker.prev") end, opts)
+map("n", "]d", function() vs.action("editor.action.marker.next") end, opts)
+map("n", "<leader>d", function() vs.action("workbench.actions.view.problems") end, opts)
+
+-- ========================================
+-- CODE ACTIONS / REFACTORING
+-- ========================================
+map("n", "<leader>ca", function() vs.action("editor.action.quickFix") end, opts)
+map("n", "<leader>rn", function() vs.action("editor.action.rename") end, opts)
+map("n", "<leader>rf", function() vs.action("editor.action.refactor") end, opts)
+map("n", "<leader>fm", function() vs.action("editor.action.formatDocument") end, opts)
+map("v", "<leader>fm", function() vs.action("editor.action.formatSelection") end, opts)
+map("n", "<leader>oi", function() vs.action("editor.action.organizeImports") end, opts)
 
 -- ========================================
 -- TERMINAL
 -- ========================================
-keymap('n', '<leader>t', "<Cmd>call VSCodeNotify('workbench.action.terminal.toggleTerminal')<CR>")
-keymap('n', '<leader>T', "<Cmd>call VSCodeNotify('workbench.action.terminal.new')<CR>")
-keymap('n', '<leader>ts', "<Cmd>call VSCodeNotify('workbench.action.terminal.split')<CR>")
+map("n", "<leader>t", function() vs.action("workbench.action.terminal.toggleTerminal") end, opts)
+map("n", "<leader>T", function() vs.action("workbench.action.terminal.new") end, opts)
+map("n", "<leader>ts", function() vs.action("workbench.action.terminal.split") end, opts)
 
 -- ========================================
--- GIT INTEGRATION
+-- COPILOT / CHAT
 -- ========================================
-keymap('n', '<leader>gg', "<Cmd>call VSCodeNotify('workbench.view.scm')<CR>")
-keymap('n', '<leader>gd', "<Cmd>call VSCodeNotify('git.openChange')<CR>")
-keymap('n', '<leader>gs', "<Cmd>call VSCodeNotify('git.stage')<CR>")
-keymap('n', '<leader>gu', "<Cmd>call VSCodeNotify('git.unstage')<CR>")
-keymap('n', '<leader>gc', "<Cmd>call VSCodeNotify('git.commit')<CR>")
-keymap('n', '[c', "<Cmd>call VSCodeNotify('workbench.action.editor.previousChange')<CR>")
-keymap('n', ']c', "<Cmd>call VSCodeNotify('workbench.action.editor.nextChange')<CR>")
-
--- ========================================
--- FOLDING
--- ========================================
-keymap('n', 'za', "<Cmd>call VSCodeNotify('editor.toggleFold')<CR>")
-keymap('n', 'zR', "<Cmd>call VSCodeNotify('editor.unfoldAll')<CR>")
-keymap('n', 'zM', "<Cmd>call VSCodeNotify('editor.foldAll')<CR>")
-keymap('n', 'zo', "<Cmd>call VSCodeNotify('editor.unfold')<CR>")
-keymap('n', 'zc', "<Cmd>call VSCodeNotify('editor.fold')<CR>")
-keymap('n', 'zO', "<Cmd>call VSCodeNotify('editor.unfoldRecursively')<CR>")
-keymap('n', 'zC', "<Cmd>call VSCodeNotify('editor.foldRecursively')<CR>")
-
-
--- Multi-cursor support
-keymap('n', 'gb', "<Cmd>call VSCodeNotify('editor.action.addSelectionToNextFindMatch')<CR>")
-keymap('v', 'gb', "<Cmd>call VSCodeNotify('editor.action.addSelectionToNextFindMatch')<CR>")
-
--- ========================================
--- COPILOT INTEGRATION
--- ========================================
--- Inline chat in editor (for /fix, /explain, /tests, /docs)
-keymap('n', '<leader>ci', "<Cmd>call VSCodeNotify('inlineChat.start')<CR>")
-keymap('v', '<leader>ci', "<Cmd>call VSCodeNotify('inlineChat.start')<CR>")
-
--- Quick chat popup (floating window)
-keymap('n', '<leader>cc', "<Cmd>call VSCodeNotify('workbench.action.quickchat.toggle')<CR>")
-keymap('v', '<leader>cc', "<Cmd>call VSCodeNotify('workbench.action.quickchat.toggle')<CR>")
-
--- Full chat panel (sidebar)
-keymap('n', '<leader>cp', "<Cmd>call VSCodeNotify('workbench.panel.chat.view.copilot.focus')<CR>")
-
--- Toggle Copilot on/off
-keymap('n', '<leader>ct', "<Cmd>call VSCodeNotify('github.copilot.toggleCopilot')<CR>")
-
--- ========================================
--- COMFORT MAPPINGS
--- ========================================
--- Center cursor after jumping
-keymap('n', '<C-d>', '<C-d>zz')
-keymap('n', '<C-u>', '<C-u>zz')
-keymap('n', 'n', 'nzzzv')
-keymap('n', 'N', 'Nzzzv')
-
--- Better line joins
-keymap('n', 'J', 'mzJ`z')
-
--- Keep visual mode after indent
-keymap('v', '<', '<gv')
-keymap('v', '>', '>gv')
-
--- Move lines in visual mode
-keymap('v', 'J', ":m '>+1<CR>gv=gv")
-keymap('v', 'K', ":m '<-2<CR>gv=gv")
-
--- Quick escape
-keymap('i', 'jj', '<Esc>')
-keymap('i', 'jk', '<Esc>')
-
--- Yank to end of line (like D and C)
-keymap('n', 'Y', 'y$')
-
--- Quick save
-keymap('n', '<leader><leader>', "<Cmd>call VSCodeNotify('workbench.action.files.save')<CR>")
-
--- Select all
-keymap('n', '<leader>a', 'ggVG')
-
--- Clear search highlight
-keymap('n', '<leader>n', ':nohl<CR>')
-
--- Better paste in visual mode (don't yank replaced text)
-keymap('v', 'p', '"_dP')
-
--- Quick macro recording
-keymap('n', 'Q', '@q')
-
--- Faster navigation
-keymap('n', 'H', '^') -- Beginning of line
-keymap('n', 'L', '$') -- End of line
+map({ "n", "v" }, "<leader>ci", function() vs.action("inlineChat.start") end, opts)
+map({ "n", "v" }, "<leader>cc", function() vs.action("workbench.action.quickchat.toggle") end, opts)
+map("n", "<leader>cp", function() vs.action("workbench.action.chat.open") end, opts)
+map("n", "<leader>ct", function() vs.action("github.copilot.completions.toggle") end, opts)

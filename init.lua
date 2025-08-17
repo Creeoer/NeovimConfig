@@ -4,6 +4,7 @@ vim.g.maplocalleader = " "
 
 -- Check if running in VSCode
 if vim.g.vscode then
+  require("vscode-lazy")
   -- VSCode-specific config
   require('vscode-config')
 else
