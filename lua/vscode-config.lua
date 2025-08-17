@@ -1,4 +1,6 @@
+-- ~/.config/nvim/lua/vscode-config.lua
 -- VSCode Neovim Configuration
+
 local keymap = vim.keymap.set
 
 -- Set options
@@ -10,10 +12,11 @@ vim.opt.clipboard = "unnamedplus"
 -- FILE NAVIGATION
 -- ========================================
 keymap('n', '<leader>p', "<Cmd>call VSCodeNotify('workbench.action.quickOpen')<CR>")
-keymap('n', '<leader>f', "<Cmd>call VSCodeNotify('workbench.action.findInFiles')<CR>")
-keymap('n', '<leader>e', "<Cmd>call VSCodeNotify('workbench.view.explorer')<CR>")
-keymap('n', '<leader>b', "<Cmd>call VSCodeNotify('workbench.action.showAllEditors')<CR>")
-keymap('n', '<leader>r', "<Cmd>call VSCodeNotify('workbench.action.openRecent')<CR>")
+keymap('n', '<leader>ff', "<Cmd>call VSCodeNotify('workbench.action.quickOpen')<CR>")
+keymap('n', '<leader>fg', "<Cmd>call VSCodeNotify('workbench.action.findInFiles')<CR>")
+keymap('n', '<leader>fb', "<Cmd>call VSCodeNotify('workbench.action.showAllEditors')<CR>")
+keymap('n', '<leader>fr', "<Cmd>call VSCodeNotify('workbench.action.openRecent')<CR>")
+keymap('n', '<leader>e', "<Cmd>call VSCodeNotify('workbench.files.action.focusFilesExplorer')<CR>")
 
 -- Tab navigation
 keymap('n', '<leader>h', "<Cmd>call VSCodeNotify('workbench.action.previousEditor')<CR>")
@@ -26,12 +29,15 @@ keymap('n', '<leader>w', "<Cmd>call VSCodeNotify('workbench.action.files.save')<
 keymap('n', '<leader>W', "<Cmd>call VSCodeNotify('workbench.action.files.saveAll')<CR>")
 keymap('n', '<leader>q', "<Cmd>call VSCodeNotify('workbench.action.closeActiveEditor')<CR>")
 keymap('n', '<leader>Q', "<Cmd>call VSCodeNotify('workbench.action.closeAllEditors')<CR>")
+keymap('n', '<leader>x', "<Cmd>call VSCodeNotify('workbench.action.closeActiveEditor')<CR>")
 
 -- ========================================
 -- WINDOW/SPLIT MANAGEMENT
 -- ========================================
+keymap('n', '<leader>v', "<Cmd>call VSCodeNotify('workbench.action.splitEditorRight')<CR>")
+keymap('n', '<leader>s', "<Cmd>call VSCodeNotify('workbench.action.splitEditorDown')<CR>")
 keymap('n', '<leader>sv', "<Cmd>call VSCodeNotify('workbench.action.splitEditor')<CR>")
-keymap('n', '<leader>sh', "<Cmd>call VSCodeNotify('workbench.action.splitEditorDown')<CR>")
+keymap('n', '<leader>sh', "<Cmd>call VSCodeNotify('workbench.action.splitEditorOrthogonal')<CR>")
 keymap('n', '<leader>sc', "<Cmd>call VSCodeNotify('workbench.action.closeEditorsInGroup')<CR>")
 keymap('n', '<leader>so', "<Cmd>call VSCodeNotify('workbench.action.closeOtherEditors')<CR>")
 
@@ -44,24 +50,23 @@ keymap('n', '<C-l>', "<Cmd>call VSCodeNotify('workbench.action.focusRightGroup')
 -- Move editors between groups
 keymap('n', '<leader>mh', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToLeftGroup')<CR>")
 keymap('n', '<leader>ml', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToRightGroup')<CR>")
+keymap('n', '<leader>mj', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToBelowGroup')<CR>")
+keymap('n', '<leader>mk', "<Cmd>call VSCodeNotify('workbench.action.moveEditorToAboveGroup')<CR>")
 
 -- ========================================
--- CODE NAVIGATION
+-- NAVIGATION & GOTO
 -- ========================================
 keymap('n', 'gd', "<Cmd>call VSCodeNotify('editor.action.revealDefinition')<CR>")
-keymap('n', 'gD', "<Cmd>call VSCodeNotify('editor.action.revealDefinitionAside')<CR>")
+keymap('n', 'gD', "<Cmd>call VSCodeNotify('editor.action.revealDeclaration')<CR>")
 keymap('n', 'gi', "<Cmd>call VSCodeNotify('editor.action.goToImplementation')<CR>")
 keymap('n', 'gr', "<Cmd>call VSCodeNotify('editor.action.goToReferences')<CR>")
 keymap('n', 'gt', "<Cmd>call VSCodeNotify('editor.action.goToTypeDefinition')<CR>")
-keymap('n', 'gp', "<Cmd>call VSCodeNotify('editor.action.peekDefinition')<CR>")
-
--- Navigate history
-keymap('n', '<C-o>', "<Cmd>call VSCodeNotify('workbench.action.navigateBack')<CR>")
-keymap('n', '<C-i>', "<Cmd>call VSCodeNotify('workbench.action.navigateForward')<CR>")
+keymap('n', 'gh', "<Cmd>call VSCodeNotify('editor.action.showHover')<CR>")
+keymap('n', 'gf', "<Cmd>call VSCodeNotify('editor.action.revealDefinition')<CR>")
 
 -- Symbol navigation
-keymap('n', '<leader>s', "<Cmd>call VSCodeNotify('workbench.action.gotoSymbol')<CR>")
-keymap('n', '<leader>S', "<Cmd>call VSCodeNotify('workbench.action.showAllSymbols')<CR>")
+keymap('n', '<leader>S', "<Cmd>call VSCodeNotify('workbench.action.gotoSymbol')<CR>")
+keymap('n', '<leader>s', "<Cmd>call VSCodeNotify('workbench.action.showAllSymbols')<CR>")
 
 -- ========================================
 -- CODE ACTIONS & REFACTORING
@@ -118,6 +123,11 @@ keymap('n', 'zc', "<Cmd>call VSCodeNotify('editor.fold')<CR>")
 keymap('n', 'zO', "<Cmd>call VSCodeNotify('editor.unfoldRecursively')<CR>")
 keymap('n', 'zC', "<Cmd>call VSCodeNotify('editor.foldRecursively')<CR>")
 
+
+-- Multi-cursor support
+keymap('n', 'gb', "<Cmd>call VSCodeNotify('editor.action.addSelectionToNextFindMatch')<CR>")
+keymap('v', 'gb', "<Cmd>call VSCodeNotify('editor.action.addSelectionToNextFindMatch')<CR>")
+
 -- ========================================
 -- COPILOT INTEGRATION
 -- ========================================
@@ -170,3 +180,13 @@ keymap('n', '<leader>a', 'ggVG')
 
 -- Clear search highlight
 keymap('n', '<leader>n', ':nohl<CR>')
+
+-- Better paste in visual mode (don't yank replaced text)
+keymap('v', 'p', '"_dP')
+
+-- Quick macro recording
+keymap('n', 'Q', '@q')
+
+-- Faster navigation
+keymap('n', 'H', '^') -- Beginning of line
+keymap('n', 'L', '$') -- End of line
