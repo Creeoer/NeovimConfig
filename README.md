@@ -12,6 +12,9 @@ My personal Neovim configuration optimized for VSCode integration with WSL.
 6. Done! You may enable or disable the lazyvim plugins by editing the vscode-lazy.lua file.
 7. You can edit the keybindings in the vscode-config.lua file.
 
+Optional: If desired, you may install the VS Project Manager + VS Harpoon to replicate neovim-like functionality. The keybindings are already present
+in the vscode-config.lua file
+
 ## Features
 
 - VSCode-specific keybindings
