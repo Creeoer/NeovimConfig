@@ -18,11 +18,6 @@ map("n", "<leader>fb", function() vs.action("workbench.action.showAllEditors") e
 map("n", "<leader>fr", function() vs.action("workbench.action.openRecent") end, opts)
 map("n", "<leader>e", function() vs.action("workbench.files.action.focusFilesExplorer") end, opts)
 
--- ========================================
--- EDITOR / TAB NAVIGATION
--- ========================================
-map("n", "<leader>h", function() vs.action("workbench.action.previousEditor") end, opts)
-map("n", "<leader>l", function() vs.action("workbench.action.nextEditor") end, opts)
 
 -- ========================================
 -- WINDOW / SPLIT MANAGEMENT
@@ -87,3 +82,49 @@ map({ "n", "v" }, "<leader>ci", function() vs.action("inlineChat.start") end, op
 map({ "n", "v" }, "<leader>cc", function() vs.action("workbench.action.quickchat.toggle") end, opts)
 map("n", "<leader>cp", function() vs.action("workbench.action.chat.open") end, opts)
 map("n", "<leader>ct", function() vs.action("github.copilot.completions.toggle") end, opts)
+
+-- ========================================
+-- VS HARPOON
+-- ========================================
+map("n", "<leader>Ha", function() vs.action("vscode-harpoon.addEditor") end, opts)
+map("n", "<leader>Ho", function() vs.action("vscode-harpoon.editorQuickPick") end, opts)
+map("n", "<leader>He", function() vs.action("vscode-harpoon.editEditors") end, opts)
+
+-- direct jumps
+map("n", "<leader>H1", function() vs.action("vscode-harpoon.gotoEditor1") end, opts)
+map("n", "<leader>H2", function() vs.action("vscode-harpoon.gotoEditor2") end, opts)
+map("n", "<leader>H3", function() vs.action("vscode-harpoon.gotoEditor3") end, opts)
+map("n", "<leader>H4", function() vs.action("vscode-harpoon.gotoEditor4") end, opts)
+map("n", "<leader>H5", function() vs.action("vscode-harpoon.gotoEditor5") end, opts)
+map("n", "<leader>H6", function() vs.action("vscode-harpoon.gotoEditor6") end, opts)
+map("n", "<leader>H7", function() vs.action("vscode-harpoon.gotoEditor7") end, opts)
+map("n", "<leader>H8", function() vs.action("vscode-harpoon.gotoEditor8") end, opts)
+map("n", "<leader>H9", function() vs.action("vscode-harpoon.gotoEditor9") end, opts)
+
+-- ========================================
+-- PROJECT MANAGER (alefragnani.project-manager)
+-- ========================================
+map("n", "<leader>pa", function() vs.action("projectManager.saveProject") end, opts)
+map("n", "<leader>pe", function() vs.action("projectManager.editProjects") end, opts)
+map("n", "<leader>po", function() vs.action("projectManager.listProjects") end, opts)
+map("n", "<leader>pO", function() vs.action("projectManager.listProjectsNewWindow") end, opts)
+
+
+-- Override LazyVim keybinding that breaks tab switching
+-- Override LazyVim’s <leader>h/<leader>l after plugins finish
+vim.api.nvim_create_autocmd("User", {
+    pattern = "VeryLazy",
+    callback = function()
+        local vs = require("vscode")
+        local map = vim.keymap.set
+        local opts = { silent = true, noremap = true, nowait = true }
+
+        -- remove LazyVim mappings if present
+        pcall(vim.keymap.del, "n", "<leader>l")
+        pcall(vim.keymap.del, "n", "<leader>h")
+
+        -- your tab navigation
+        map("n", "<leader>l", function() vs.action("workbench.action.nextEditor") end, opts)
+        map("n", "<leader>h", function() vs.action("workbench.action.previousEditor") end, opts)
+    end,
+})
