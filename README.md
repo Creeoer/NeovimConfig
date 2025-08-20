@@ -20,6 +20,7 @@ in the vscode-config.lua file
 - VSCode-specific keybindings
 - Efficient file navigation
 - Vim motions optimized for VSCode
+- Terminal Neovim that includes telescope, harpoon, tree sitter, Mason, etc
 
 ## Installation
 
