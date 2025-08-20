@@ -1,7 +1,7 @@
 -- Set leader key early
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
-
+vim.keymap.set({ "n", "v" }, "<Space>", "<Nop>", { silent = true })
 -- Check if running in VSCode
 if vim.g.vscode then
   require("vscode-lazy")
@@ -9,7 +9,7 @@ if vim.g.vscode then
   require('vscode-config')
 else
   -- Regular terminal nvim config
-  local ok, _ = pcall(require, 'regular-config')
+  local ok, err = pcall(require, "regular-config") -- or "regular_config", see #3
   if not ok then
     -- Basic settings if regular-config doesn't exist
     vim.opt.number = true
