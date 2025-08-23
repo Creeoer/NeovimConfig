@@ -1,3 +1,4 @@
+-- Lazy bootstrap
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none",
@@ -5,7 +6,8 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-
+-- Core opts
+vim.g.mapleader = " "
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.expandtab = true
@@ -22,7 +24,7 @@ vim.opt.signcolumn = "yes"
 vim.opt.updatetime = 50
 vim.opt.cursorline = true
 vim.opt.clipboard = "unnamedplus"
-vim.opt.completeopt = { "menu", "menuone", "noselect" } -- cmp UX
+vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 -- Plugins
 require("lazy").setup({
@@ -35,21 +37,29 @@ require("lazy").setup({
       require("onedark").load()
     end,
   },
-
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+  },
+  {
+    "rose-pine/neovim",
+    name = "rose-pine",
+    priority = 1000,
+  },
   -- Telescope core
   {
     "nvim-telescope/telescope.nvim",
-    tag = "0.1.5",
+    branch = "0.1.x",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       require("telescope").setup({
         defaults = { file_ignore_patterns = { "node_modules", ".git/" } },
       })
+      pcall(require("telescope").load_extension, "project")
     end,
   },
-  -- Telescope project switcher
-  { "nvim-telescope/telescope-project.nvim", dependencies = { "nvim-telescope/telescope.nvim" } },
-
+  { "nvim-telescope/telescope-project.nvim" },
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
@@ -57,17 +67,15 @@ require("lazy").setup({
     config = function()
       require("nvim-treesitter.configs").setup({
         ensure_installed = {
-          "lua", "vim", "vimdoc",
-          "javascript", "typescript", "tsx",
-          "html", "css", "json",
+          "lua", "vim", "vimdoc", "java",
+          "javascript", "typescript", "tsx", "html", "css", "json",
           "c", "cpp", "bash", "markdown", "python",
         },
-        highlight        = { enable = true },
-        indent           = { enable = true },
+        highlight = { enable = true },
+        indent = { enable = true },
       })
     end,
   },
-
   -- File explorer
   {
     "nvim-tree/nvim-tree.lua",
@@ -80,8 +88,39 @@ require("lazy").setup({
       })
     end,
   },
-
-  -- Bufferline (tabs for buffers)
+  {
+    "folke/noice.nvim",
+    event = "VeryLazy",
+    dependencies = { "MunifTanjim/nui.nvim" },
+    opts = {
+      lsp = {
+        override = {
+          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+          ["vim.lsp.util.stylize_markdown"] = true,
+          ["cmp.entry.get_documentation"] = true,
+        },
+      },
+      presets = {
+        bottom_search = true,
+        command_palette = true,
+        long_message_to_split = true,
+        inc_rename = false,
+      },
+    },
+  },
+  {
+    "rcarriga/nvim-notify",
+    opts = {
+      timeout = 3000,
+      max_height = function() return math.floor(vim.o.lines * 0.75) end,
+      max_width = function() return math.floor(vim.o.columns * 0.75) end,
+    },
+    config = function(_, opts)
+      vim.notify = require("notify")
+      require("notify").setup(opts)
+    end,
+  },
+  -- Bufferline
   {
     "akinsho/bufferline.nvim",
     version = "*",
@@ -106,7 +145,6 @@ require("lazy").setup({
       map("n", "<leader>bd", ":bdelete<CR>", o)
     end,
   },
-
   -- Git signs
   {
     "lewis6991/gitsigns.nvim",
@@ -122,27 +160,51 @@ require("lazy").setup({
       })
     end,
   },
-
+  -- In your lazy.setup table
+  {
+    "folke/trouble.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    opts = {}, -- using default configuration
+    cmd = "Trouble",
+    keys = {
+      {
+        "<leader>xx",
+        "<cmd>Trouble diagnostics toggle<cr>",
+        desc = "Workspace Diagnostics (Trouble)",
+      },
+      {
+        "<leader>xX",
+        "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+        desc = "Buffer Diagnostics (Trouble)",
+      },
+      {
+        "<leader>cs",
+        "<cmd>Trouble symbols toggle focus=false<cr>",
+        desc = "Document Symbols (Trouble)",
+      },
+      {
+        "<leader>xL",
+        "<cmd>Trouble loclist toggle<cr>",
+        desc = "Location List (Trouble)",
+      },
+      {
+        "<leader>xQ",
+        "<cmd>Trouble qflist toggle<cr>",
+        desc = "Quickfix List (Trouble)",
+      },
+    },
+  },
   -- Statusline
   {
     "nvim-lualine/lualine.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function() require("lualine").setup({ options = { theme = "onedark" } }) end,
   },
-
   -- QoL
-  { "windwp/nvim-autopairs",                 event = "InsertEnter",                             config = true },
-  { "numToStr/Comment.nvim",                 config = true },
-  { "lukas-reineke/indent-blankline.nvim",   main = "ibl",                                      config = true },
-  {
-    "folke/which-key.nvim",
-    event = "VeryLazy",
-    config = function()
-      require("which-key").setup()
-    end
-  },
-
-  -- Flash motions (standard keys)
+  { "windwp/nvim-autopairs",                event = "InsertEnter", config = true },
+  { "numToStr/Comment.nvim",                config = true },
+  { "lukas-reineke/indent-blankline.nvim",  main = "ibl",          config = true },
+  { "folke/which-key.nvim",                 event = "VeryLazy",    config = true },
   {
     "folke/flash.nvim",
     event = "VeryLazy",
@@ -151,337 +213,335 @@ require("lazy").setup({
       local flash = require("flash")
       flash.setup(opts)
       vim.keymap.set({ "n", "x", "o" }, "s", flash.jump, { desc = "Flash Jump" })
-      vim.keymap.set({ "n", "x", "o" }, "S", flash.treesitter, { desc = "Flash Treesitter" })
-      vim.keymap.set({ "o" }, "r", flash.remote, { desc = "Remote Flash" })
-      vim.keymap.set({ "o", "x" }, "R", flash.treesitter_search, { desc = "Treesitter Search" })
-      vim.keymap.set({ "c" }, "<C-s>", flash.toggle, { desc = "Toggle Flash Search" })
     end,
   },
-
   -- Completion stack
-  { "hrsh7th/nvim-cmp" },
+  {
+    "hrsh7th/nvim-cmp",
+    config = function()
+      local cmp = require("cmp")
+      local luasnip = require("luasnip")
+      require("luasnip.loaders.from_vscode").lazy_load()
+      cmp.setup({
+        snippet = { expand = function(args) luasnip.lsp_expand(args.body) end },
+        mapping = cmp.mapping.preset.insert({
+          ["<CR>"] = cmp.mapping.confirm({ select = false }),
+          ["<Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+          ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+              luasnip.jump(-1)
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+        }),
+        sources = cmp.config.sources({
+          { name = "nvim_lsp" }, { name = "luasnip" },
+        }, {
+          { name = "buffer" }, { name = "path" },
+        }),
+      })
+    end
+  },
   { "hrsh7th/cmp-nvim-lsp" },
   { "hrsh7th/cmp-buffer" },
   { "hrsh7th/cmp-path" },
   { "saadparwaiz1/cmp_luasnip" },
   { "L3MON4D3/LuaSnip",        dependencies = { "rafamadriz/friendly-snippets" } },
+  --Nvim-Surround
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup({
+        -- Custom config here
+      })
+    end,
+  },
 
-  -- Copilot ghost text
+  -- Copilot
   {
     "zbirenbaum/copilot.lua",
     event = "InsertEnter",
     cmd = "Copilot",
     opts = {
-      panel = { enabled = false },
       suggestion = {
         auto_trigger = true,
-        debounce = 75,
+        -- This keymap table explicitly sets the bindings for suggestions
         keymap = {
-          accept = "<C-l>", -- accept via cmp <CR>
-          accept_word = "<M-w>",
-          accept_line = "<M-l>",
-          next = "<M-]>",
-          prev = "<M-[>",
-          dismiss = "<M-e>",
+          accept = "<C-l>",      -- Accept the full suggestion
+          accept_word = "<M-w>", -- Accept one word
+          accept_line = "<M-l>", -- Accept one line
+          next = "<M-]>",        -- See the next suggestion
+          prev = "<M-[>",        -- See the previous suggestion
+          dismiss = "<C-e>",     -- Dismiss the current suggestion
+        },
+      },
+      panel = {
+        enabled = true,
+        keymap = {
+          jump_prev = "[[",
+          jump_next = "]]",
         },
       },
     },
-    config = function(_, opts)
-      local ok, copilot = pcall(require, "copilot")
-      if not ok then return end
-      copilot.setup(opts)
-      local has_cmp, cmp = pcall(require, "cmp")
-      local has_snip, luasnip = pcall(require, "luasnip")
-      local function set_trigger(on) pcall(require("copilot.suggestion").toggle_auto_trigger, on) end
-      if has_cmp then
-        cmp.event:on("menu_opened", function() set_trigger(false) end)
-        cmp.event:on("menu_closed", function()
-          set_trigger(not (has_snip and luasnip.expand_or_locally_jumpable()))
-        end)
+  },
+  { "CopilotC-Nvim/CopilotChat.nvim", branch = "main",     dependencies = { "nvim-lua/plenary.nvim", "zbirenbaum/copilot.lua" }, opts = {} },
+
+  -- Harpoon 2
+  { "ThePrimeagen/harpoon",           branch = "harpoon2", dependencies = { "nvim-lua/plenary.nvim" } },
+
+  -- Formatter orchestrator
+  {
+    "stevearc/conform.nvim",
+    config = function()
+      require("conform").setup({
+        formatters_by_ft = {
+          python = { "black", "ruff" },
+          lua = { "stylua" },
+          java = { "google-java-format" },
+          c = { "clang-format" },
+          cpp = { "clang-format" },
+          --   ["*"] = { "prettierd", "prettier" },
+        },
+        format_on_save = { lsp_fallback = true, timeout_ms = 500 },
+      })
+    end
+  },
+
+  -- Integrated terminal
+  { "akinsho/toggleterm.nvim", version = "*", config = true },
+
+  -- ===================================================
+  -- ===== LSP, Mason, and DAP Configuration Stack =====
+  -- ===================================================
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = {
+      "williamboman/mason.nvim",
+      "williamboman/mason-lspconfig.nvim",
+    },
+    config = function()
+      -- This function contains all LSP setup logic
+      local capabilities = require("cmp_nvim_lsp").default_capabilities()
+      local function on_attach(_, bufnr)
+        local map = function(m, l, r) vim.keymap.set(m, l, r, { buffer = bufnr, silent = true }) end
+        map("n", "gd", vim.lsp.buf.definition)
+        map("n", "K", vim.lsp.buf.hover)
+        map("n", "gr", vim.lsp.buf.references)
+        map("n", "<leader>ca", vim.lsp.buf.code_action)
+        map("n", "<leader>rn", vim.lsp.buf.rename)
+        map("n", "[d", vim.diagnostic.goto_prev)
+        map("n", "]d", vim.diagnostic.goto_next)
+        map("n", "<leader>F", function() vim.lsp.buf.format({ async = true }) end)
       end
-      if has_snip then
-        vim.api.nvim_create_autocmd("User", {
-          pattern = { "LuasnipInsertNodeEnter", "LuasnipInsertNodeLeave" },
-          callback = function() set_trigger(not luasnip.expand_or_locally_jumpable()) end,
-        })
-      end
+
+      -- Setup mason-lspconfig to bridge Mason and lspconfig
+      require("mason-lspconfig").setup({
+        ensure_installed = { "ts_ls", "html", "cssls", "jsonls", "clangd", "pyright",
+          "gopls", "rust_analyzer" },
+        automatic_installation = true,
+        handlers = {
+          function(server) require("lspconfig")[server].setup({ capabilities = capabilities, on_attach = on_attach }) end,
+        },
+      })
+
+      -- Specific setup for Java (jdtls)
+      require("lspconfig").jdtls.setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+      })
     end,
   },
 
-  -- CopilotChat
+  { "williamboman/mason.nvim", config = true }, -- NOTE: `config = true` calls mason.setup()
+
+  { "mfussenegger/nvim-dap" },
   {
-    "CopilotC-Nvim/CopilotChat.nvim",
-    branch = "main",
-    dependencies = { "nvim-lua/plenary.nvim", "zbirenbaum/copilot.lua" },
-    opts = {},
-  },
-
-  -- Harpoon 2
-  { "ThePrimeagen/harpoon",             branch = "harpoon2", dependencies = { "nvim-lua/plenary.nvim" } },
-
-  -- LSP + Mason
-  { "neovim/nvim-lspconfig" },
-  { "williamboman/mason.nvim" },
-  { "williamboman/mason-lspconfig.nvim" },
-
-  -- Formatter orchestrator
-  { "stevearc/conform.nvim" },
-
-  -- Integrated terminal
-  { "akinsho/toggleterm.nvim",          version = "*",       config = true },
-})
-
--- Telescope extensions
-pcall(function() require("telescope").load_extension("project") end)
-
--- nvim-cmp setup
-do
-  local ok_cmp, cmp = pcall(require, "cmp")
-  local ok_snip, luasnip = pcall(require, "luasnip")
-  if ok_cmp then
-    if ok_snip then require("luasnip.loaders.from_vscode").lazy_load() end
-    cmp.setup({
-      snippet = { expand = function(args) if ok_snip then luasnip.lsp_expand(args.body) end end },
-      preselect = cmp.PreselectMode.None,
-      window = {
-        completion    = cmp.config.window.bordered(),
-        documentation = cmp.config.window.bordered(),
-      },
-      mapping = cmp.mapping.preset.insert({
-        ["<CR>"]      = cmp.mapping.confirm({ select = false }),
-        ["<Tab>"]     = cmp.mapping(function(fallback)
-          if cmp.visible() then
-            cmp.select_next_item()
-          elseif ok_snip and luasnip.expand_or_jumpable() then
-            luasnip.expand_or_jump()
-          else
-            fallback()
-          end
-        end, { "i", "s" }),
-        ["<S-Tab>"]   = cmp.mapping(function(fallback)
-          if cmp.visible() then
-            cmp.select_prev_item()
-          elseif ok_snip and luasnip.jumpable(-1) then
-            luasnip.jump(-1)
-          else
-            fallback()
-          end
-        end, { "i", "s" }),
-        ["<C-n>"]     = cmp.mapping.select_next_item(),
-        ["<C-p>"]     = cmp.mapping.select_prev_item(),
-        ["<C-d>"]     = cmp.mapping.scroll_docs(4),
-        ["<C-u>"]     = cmp.mapping.scroll_docs(-4),
-        ["<C-e>"]     = cmp.mapping.abort(),
-        ["<C-Space>"] = cmp.mapping.complete(),
-      }),
-      sources = cmp.config.sources({
-        { name = "nvim_lsp", keyword_length = 2, max_item_count = 15 },
-        { name = "luasnip",  keyword_length = 2, max_item_count = 10 },
-      }, {
-        { name = "path", max_item_count = 10 },
-        {
-          name = "buffer",
-          keyword_length = 3,
-          max_item_count = 5,
-          option = {
-            get_bufnrs = function()
-              local bufs = {}
-              for _, win in ipairs(vim.api.nvim_list_wins()) do
-                bufs[vim.api.nvim_win_get_buf(win)] = true
-              end
-              return vim.tbl_keys(bufs)
-            end,
-          },
+    "rcarriga/nvim-dap-ui",
+    dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
+    config = function()
+      local dap, dapui = require("dap"), require("dapui")
+      dapui.setup({
+        layouts = {
+          { elements = { "scopes", "breakpoints", "stacks", "watches" }, size = 40, position = "right" },
+          { elements = { "repl", "console" },                            size = 10, position = "bottom" },
         },
-      }),
-      performance = { max_view_entries = 20 },
-      formatting = {
-        format = function(entry, item)
-          item.menu = ({ nvim_lsp = "[LSP]", luasnip = "[SNIP]", buffer = "[BUF]", path = "[PATH]" })[entry.source.name]
-          return item
+      })
+      -- Auto open/close dap-ui listeners
+      dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
+      dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
+      dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
+    end,
+  },
+  { "theHamsta/nvim-dap-virtual-text", dependencies = { "mfussenegger/nvim-dap" }, opts = { commented = true } },
+  {
+    "jay-babu/mason-nvim-dap.nvim",
+    dependencies = { "williamboman/mason.nvim", "mfussenegger/nvim-dap" },
+    opts = {
+      automatic_installation = true,
+      ensure_installed = { "python", "js", "codelldb", "delve", "coreclr", "php", "bash" },
+      handlers = {
+        codelldb = function(config)
+          require("mason-nvim-dap").default_setup(config)
         end,
       },
-    })
-  end
-end
-
--- LSP via mason-lspconfig
-do
-  local ok_lsp, lspconfig = pcall(require, "lspconfig")
-  if not ok_lsp then return end
-
-  local capabilities = vim.lsp.protocol.make_client_capabilities()
-  local ok_cmpcaps, cmp_caps = pcall(require, "cmp_nvim_lsp")
-  if ok_cmpcaps then
-    capabilities = cmp_caps.default_capabilities(capabilities)
-  else
-    capabilities.textDocument.completion.completionItem.snippetSupport = true
-  end
-
-  local function on_attach(_, bufnr)
-    local map = function(mode, lhs, rhs) vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true }) end
-    map("n", "gd", vim.lsp.buf.definition)
-    map("n", "gD", vim.lsp.buf.declaration)
-    map("n", "gr", vim.lsp.buf.references)
-    map("n", "gi", vim.lsp.buf.implementation)
-    map("n", "K", vim.lsp.buf.hover)
-    map("n", "<leader>rn", vim.lsp.buf.rename)
-    map("n", "<leader>ca", vim.lsp.buf.code_action)
-    map("n", "[d", vim.diagnostic.goto_prev)
-    map("n", "]d", vim.diagnostic.goto_next)
-    map("n", "<leader>F", function() vim.lsp.buf.format({ async = true }) end)
-  end
-
-  -- Mason core
-  local ok_mason, mason = pcall(require, "mason")
-  if ok_mason then mason.setup() end
-
-  local wanted = { "ts_ls", "html", "cssls", "jsonls", "clangd", "pyright" }
-  local ok_mlsp, mlsp = pcall(require, "mason-lspconfig")
-  if ok_mlsp then
-    mlsp.setup({ ensure_installed = wanted, automatic_installation = true })
-
-    if type(mlsp.setup_handlers) == "function" then
-      mlsp.setup_handlers({
-        function(server)
-          lspconfig[server].setup({ capabilities = capabilities, on_attach = on_attach })
-        end,
-        ["ts_ls"] = function()
-          lspconfig.ts_ls.setup({
-            capabilities = capabilities,
-            on_attach = on_attach,
-            root_dir = lspconfig.util.root_pattern("package.json", "tsconfig.json", ".git"),
-          })
-        end,
-      })
-    else
-      -- Fallback path for older mason-lspconfig
-      local servers = mlsp.get_installed_servers and mlsp.get_installed_servers() or wanted
-      for _, server in ipairs(servers) do
-        if server == "tsserver" or server == "ts_ls" then
-          local name = lspconfig.ts_ls and "ts_ls" or "tsserver"
-          lspconfig[name].setup({
-            capabilities = capabilities,
-            on_attach = on_attach,
-            root_dir = lspconfig.util.root_pattern("package.json", "tsconfig.json", ".git"),
-          })
-        else
-          lspconfig[server].setup({ capabilities = capabilities, on_attach = on_attach })
-        end
-      end
-    end
-  else
-    -- No Mason: set up directly
-    for _, server in ipairs(wanted) do
-      if lspconfig[server] then
-        lspconfig[server].setup({ capabilities = capabilities, on_attach = on_attach })
-      end
-    end
-  end
-end
-
--- Conform (formatters)
-require("conform").setup({
-  formatters_by_ft = {
-    python = { "black", "ruff" },
-    javascript = { "prettierd", "prettier" },
-    typescript = { "prettierd", "prettier" },
-    javascriptreact = { "prettierd", "prettier" },
-    typescriptreact = { "prettierd", "prettier" },
-    html = { "prettierd", "prettier" },
-    css = { "prettierd", "prettier" },
-    json = { "prettierd", "prettier" },
-    c = { "clang_format" },
-    cpp = { "clang_format" },
-    lua = { "stylua" },
+    },
   },
 
-  format_on_save = function(bufnr)
-    if vim.bo[bufnr].buftype ~= "" then return end
-    return { lsp_fallback = true, timeout_ms = 500 }
-  end,
+  -- Language helpers
+  { "mfussenegger/nvim-dap-python" },
+  { "leoluz/nvim-dap-go" },
+  -- Java nvim
+  { "nvim-java/nvim-java" },
 })
 
--- Harpoon 2
+-- Harpoon 2 setup
 do
-  local ok, harpoon = pcall(require, "harpoon")
-  if ok then
-    harpoon:setup()
-
-    vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon add file" })
-    vim.keymap.set("n", "<leader>hh", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end,
-      { desc = "Harpoon menu" })
-    vim.keymap.set("n", "<leader>h1", function() harpoon:list():select(1) end, { desc = "Harpoon file 1" })
-    vim.keymap.set("n", "<leader>h2", function() harpoon:list():select(2) end, { desc = "Harpoon file 2" })
-    vim.keymap.set("n", "<leader>h3", function() harpoon:list():select(3) end, { desc = "Harpoon file 3" })
-    vim.keymap.set("n", "<leader>h4", function() harpoon:list():select(4) end, { desc = "Harpoon file 4" })
-  end
+  local harpoon = require("harpoon")
+  local harpoon_ui = require("harpoon.ui")
+  harpoon.setup({})
+  vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon: Add file" })
+  vim.keymap.set("n", "<leader>hh", function() harpoon_ui:toggle_quick_menu(harpoon:list()) end,
+    { desc = "Harpoon: Menu" })
+  vim.keymap.set("n", "<leader>h1", function() harpoon:list():select(1) end, { desc = "Harpoon to file 1" })
+  vim.keymap.set("n", "<leader>h2", function() harpoon:list():select(2) end, { desc = "Harpoon to file 2" })
 end
 
--- ToggleTerm (integrated terminal)
-do
-  local ok, toggleterm = pcall(require, "toggleterm")
-  if ok then
-    toggleterm.setup({
-      size = 12,
-      open_mapping = [[<C-\>]],
-      direction = "horizontal", -- "float" | "vertical" | "tab"
-      shade_terminals = true,
+-- ToggleTerm setup
+require("toggleterm").setup({ open_mapping = [[<c-\>]], direction = "horizontal" })
 
-      cwd = function()
-        return vim.loop.cwd() -- respects `:pwd` / project root
+-- DAP setup (language-specific configurations)
+do
+  pcall(require("dap-python").setup, "python3")
+  pcall(require("dap-go").setup)
+
+  local dap = require("dap")
+  dap.configurations.cpp = {
+    {
+      name = "Launch file",
+      type = "codelldb",
+      request = "launch",
+      program = function()
+        local path_sep = vim.fn.has("win32") and "\\" or "/"
+        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. path_sep, 'file')
       end,
-    })
-    local map = vim.keymap.set
-    map({ "n", "t" }, "<C-\\>", "<Cmd>ToggleTerm<CR>", { desc = "Toggle terminal" })
-    map("t", "<Esc>", [[<C-\><C-n>]], { desc = "Terminal normal mode" })
-    map("t", "<C-h>", [[<C-\><C-n><C-w>h]])
-    map("t", "<C-j>", [[<C-\><C-n><C-w>j]])
-    map("t", "<C-k>", [[<C-\><C-n><C-w>k]])
-    map("t", "<C-l>", [[<C-\><C-n><C-w>l]])
-  end
+      cwd = '${workspaceFolder}',
+      stopOnEntry = false,
+    },
+  }
+  dap.configurations.c = dap.configurations.cpp
+  dap.configurations.go = {
+    {
+      type = "go",
+      name = "Debug (Launch)",
+      request = "launch",
+      program = "${fileDirname}",
+    },
+  }
+  -- For Rust
+  dap.configurations.rust = {
+    {
+      name = "Launch file",
+      type = "codelldb", -- Uses the same adapter as C/C++
+      request = "launch",
+      program = function()
+        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+      end,
+      cwd = '${workspaceFolder}',
+      stopOnEntry = false,
+    },
+  }
+  -- For JavaScript/TypeScript/React (using Node)
+  dap.configurations.javascript = {
+    {
+      type = "pwa-node",
+      request = "launch",
+      name = "Launch file",
+      program = "${file}",
+      cwd = "${workspaceFolder}",
+    },
+  }
+  dap.configurations.typescript = dap.configurations.javascript
 end
 
-
--- Keymaps
+-- =========================================================================
+-- =====                               KEYMAPS                           =====
+-- =========================================================================
 local map, o = vim.keymap.set, { noremap = true, silent = true }
--- File tree
-map("n", "<leader>e", ":NvimTreeToggle<CR>", o)
--- Telescope
-map("n", "<leader>ff", ":Telescope find_files<CR>", o)
-map("n", "<leader>fg", ":Telescope live_grep<CR>", o)
-map("n", "<leader>fb", ":Telescope buffers<CR>", o)
-map("n", "<leader>fh", ":Telescope help_tags<CR>", o)
-map("n", "<leader>fr", ":Telescope oldfiles<CR>", o)
-map("n", "<leader>fp", function() require("telescope").extensions.project.project {} end, o) -- project picker
-map("n", "<leader>gc", ":Telescope git_commits<CR>", o)
-map("n", "<leader>gs", ":Telescope git_status<CR>", o)
--- Window navigation
-map("n", "<C-h>", "<C-w>h", o)
-map("n", "<C-j>", "<C-w>j", o)
-map("n", "<C-k>", "<C-w>k", o)
-map("n", "<C-l>", "<C-w>l", o)
-map("n", "<leader>v", ":vsplit<CR>", o)
-map("n", "<leader>h", ":split<CR>", o)
--- Visual helpers
+
+-- General
+map("n", "<leader>e", ":NvimTreeToggle<CR>", { desc = "Toggle File Explorer" })
+map("n", "<leader>w", ":w<CR>", { desc = "Write (save) file" })
+map("n", "<leader>q", ":q<CR>", { desc = "Quit window" })
+map("n", "<leader>/", ":nohlsearch<CR>", { desc = "Clear search highlight" })
+
+-- Window Navigation
+map("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+map("n", "<C-j>", "<C-w>j", { desc = "Move to lower window" })
+map("n", "<C-k>", "<C-w>k", { desc = "Move to upper window" })
+map("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
+map("n", "<leader>v", ":vsplit<CR>", { desc = "Vertical split" })
+map("n", "<leader>h", ":split<CR>", { desc = "Horizontal split" })
+
+-- Visual Mode
 map("v", "<", "<gv", o)
 map("v", ">", ">gv", o)
-map("v", "J", ":m '>+1<CR>gv=gv", o)
-map("v", "K", ":m '<-2<CR>gv=gv", o)
-map("v", "p", '"_dP', o)
--- Misc
-map("n", "<leader>w", ":w<CR>", o)
-map("n", "<leader>W", ":wa<CR>", o)
-map("n", "<leader>q", ":q<CR>", o)
-map("n", "<leader>Q", ":qa<CR>", o)
-map("n", "<leader>/", ":nohlsearch<CR>", o)
-map("n", "<leader><leader>", ":so %<CR>", o)
+
+-- Telescope
+map("n", "<leader>ff", ":Telescope find_files<CR>", { desc = "Find Files" })
+map("n", "<leader>fg", ":Telescope live_grep<CR>", { desc = "Live Grep" })
+map("n", "<leader>fb", ":Telescope buffers<CR>", { desc = "Find Buffers" })
+map("n", "<leader>fh", ":Telescope help_tags<CR>", { desc = "Help Tags" })
+map("n", "<leader>fr", ":Telescope oldfiles<CR>", { desc = "Recent Files" })
+map("n", "<leader>fp", function() require("telescope").extensions.project.project {} end, { desc = "Find Projects" })
+map("n", "<leader>gc", ":Telescope git_commits<CR>", { desc = "Git Commits" })
+map("n", "<leader>gs", ":Telescope git_status<CR>", { desc = "Git Status" })
 
 -- CopilotChat
-local ok_chat, chat = pcall(require, "CopilotChat")
-if ok_chat then
-  map("v", "<leader>ce", function() chat.ask("Explain this code") end, { desc = "CopilotChat Explain" })
-  map("v", "<leader>cd", function() chat.ask("Write a docstring for this") end, { desc = "CopilotChat Docstring" })
-  map("v", "<leader>ct", function() chat.ask("Write unit tests for this") end, { desc = "CopilotChat Tests" })
-  map("n", "<leader>cc", chat.toggle, { desc = "CopilotChat Toggle" })
+local chat = pcall(require, "CopilotChat")
+if chat then
+  map("v", "<leader>ce", function() require("CopilotChat").ask("Explain this code") end,
+    { desc = "CopilotChat: Explain" })
+  map("v", "<leader>cd", function() require("CopilotChat").ask("Write a docstring for this") end,
+    { desc = "CopilotChat: Docstring" })
+  map("v", "<leader>ct", function() require("CopilotChat").ask("Write unit tests for this") end,
+    { desc = "CopilotChat: Tests" })
+  map("n", "<leader>cc", function() require("CopilotChat").toggle() end, { desc = "CopilotChat: Toggle" })
+end
+-- DAP (Debugging)
+do
+  local dap_ok, dap = pcall(require, "dap")
+  local dapui_ok, dapui = pcall(require, "dapui")
+  if not dap_ok then return end
+
+  map("n", "<leader>db", dap.toggle_breakpoint, { desc = "DAP: Toggle Breakpoint" })
+  map("n", "<leader>dB", function() dap.set_breakpoint(vim.fn.input("Breakpoint Condition: ")) end,
+    { desc = "DAP: Conditional Breakpoint" })
+  map("n", "<leader>dm", function() dap.set_breakpoint(nil, nil, vim.fn.input("Log Message: ")) end,
+    { desc = "DAP: Log Point" })
+  map("n", "<leader>dc", dap.continue, { desc = "DAP: Continue / Start" })
+  map("n", "<leader>dn", dap.step_over, { desc = "DAP: Step Over" })
+  map("n", "<leader>di", dap.step_into, { desc = "DAP: Step Into" })
+  map("n", "<leader>do", dap.step_out, { desc = "DAP: Step Out" })
+  map("n", "<leader>dC", dap.run_to_cursor, { desc = "DAP: Run to Cursor" })
+  map("n", "<leader>dr", dap.restart, { desc = "DAP: Restart" })
+  map("n", "<leader>dx", dap.terminate, { desc = "DAP: Stop / Terminate" })
+  map("n", "<leader>dR", dap.repl.toggle, { desc = "DAP: Toggle REPL" })
+
+  if dapui_ok then
+    map("n", "<leader>dU", dapui.toggle, { desc = "DAP: Toggle UI" })
+    map({ "n", "v" }, "<leader>de", require("dap.ui.widgets").hover, { desc = "DAP: Evaluate Hover" })
+  end
 end
