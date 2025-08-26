@@ -9,8 +9,14 @@ if vim.g.vscode then
   require('vscode-config')
 else
   -- Regular terminal nvim config
-  local ok, err = pcall(require, "regular-config") -- or "regular_config", see #3
+  local ok, err = pcall(require, "regular-config")
   if not ok then
+    vim.api.nvim_err_writeln("!! ERROR IN YOUR CONFIG: init.lua")
+
+    -- Print the error message itself
+    vim.api.nvim_err_writeln(err)
+
+    vim.api.nvim_err_writeln(debug.traceback())
     -- Basic settings if regular-config doesn't exist
     vim.opt.number = true
     vim.opt.relativenumber = true
