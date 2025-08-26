@@ -1,6 +1,7 @@
 # Neovim Configuration for VSCode
 
-My personal Neovim configuration optimized for VSCode integration with WSL.
+My personal Neovim configuration optimized for VSCode integration with WSL. It also includes a regular neovim configuration
+that uses the lazy plugin manager and several QoL plugins (Telescope, Treesitter, nvim-surround, Mason) etc.
 
 ## Quick Start
 
