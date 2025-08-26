@@ -12,7 +12,6 @@ require("lazy").setup({
     { "LazyVim/LazyVim",                       import = "lazyvim.plugins" },
 
     { import = "lazyvim.plugins.extras.vscode" },
-
     { "nvim-neo-tree/neo-tree.nvim",           enabled = false },
     { "nvim-telescope/telescope.nvim",         enabled = false },
     { "folke/noice.nvim",                      enabled = false },
