@@ -1,4 +1,3 @@
--- Lazy bootstrap
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none",
@@ -25,6 +24,12 @@ vim.opt.updatetime = 50
 vim.opt.cursorline = true
 vim.opt.clipboard = "unnamedplus"
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
+
+vim.diagnostic.config({
+  virtual_text = true, -- Shows messages on the right
+  signs = true,        -- Shows icons in the signcolumn
+  underline = true,    -- Underlines the text with errors
+})
 
 -- Plugins
 require("lazy").setup({
@@ -73,6 +78,16 @@ require("lazy").setup({
         },
         highlight = { enable = true },
         indent = { enable = true },
+      })
+    end,
+  },
+  --Overseer (Tasks)
+  {
+    "stevearc/overseer.nvim",
+    config = function()
+      require("overseer").setup({
+
+        templates = { "builtin", "user.c_cpp_build_run", "user.python_run", "user.java_build_run" },
       })
     end,
   },
@@ -145,6 +160,7 @@ require("lazy").setup({
       map("n", "<leader>bd", ":bdelete<CR>", o)
     end,
   },
+
   -- Git signs
   {
     "lewis6991/gitsigns.nvim",
@@ -160,7 +176,43 @@ require("lazy").setup({
       })
     end,
   },
-  -- In your lazy.setup table
+  {
+    "echasnovski/mini.files",
+    version = "*",
+    -- OPTIONAL: icons (mini.files can use mini.icons or devicons)
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      local mf = require("mini.files")
+      mf.setup({
+        options = {
+          use_as_default_explorer = true, -- replaces netrw dir buffers
+          permanent_delete = false,     -- move to trash instead of hard delete
+        },
+        windows = { preview = true, width_focus = 30, width_preview = 30 },
+      })
+
+      local uv = vim.uv or vim.loop
+      -- Launchers (match your old Telescope file-browser keys)
+      vim.keymap.set("n", "<leader>fe", function() mf.open(uv.cwd(), true) end,
+        { desc = "MiniFiles (cwd)" })
+      vim.keymap.set("n", "<leader>fE", function() mf.open(vim.api.nvim_buf_get_name(0), true) end,
+        { desc = "MiniFiles (here)" })
+
+      -- In-mini.files: toggle dotfiles with `g.`
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "MiniFilesBufferCreate",
+        callback = function(ev)
+          local show = true
+          local show_all = function(_) return true end
+          local hide_dot = function(x) return not vim.startswith(x.name, ".") end
+          vim.keymap.set("n", "g.", function()
+            show = not show
+            mf.refresh({ content = { filter = show and show_all or hide_dot } })
+          end, { buffer = ev.buf, desc = "MiniFiles: Toggle dotfiles" })
+        end,
+      })
+    end,
+  },
   {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -194,11 +246,26 @@ require("lazy").setup({
       },
     },
   },
-  -- Statusline
   {
     "nvim-lualine/lualine.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = function() require("lualine").setup({ options = { theme = "onedark" } }) end,
+    config = function()
+      require("lualine").setup({
+        options = {
+          theme = "onedark",
+          component_separators = { left = '', right = '' },
+          section_separators = { left = '', right = '' },
+        },
+        sections = {
+          lualine_a = { "mode" },
+          lualine_b = { "branch", "diff" }, -- Added 'branch' here
+          lualine_c = { "filename" },
+          lualine_x = { "diagnostics", "encoding", "filetype" },
+          lualine_y = { "progress" },
+          lualine_z = { "location" },
+        },
+      })
+    end,
   },
   -- QoL
   { "windwp/nvim-autopairs",                event = "InsertEnter", config = true },
@@ -487,6 +554,16 @@ map("n", "<leader>w", ":w<CR>", { desc = "Write (save) file" })
 map("n", "<leader>q", ":q<CR>", { desc = "Quit window" })
 map("n", "<leader>/", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 
+--File creation
+map("n", "<leader>fn", function()
+  local path_sep = vim.fn.has("win32") and "\\" or "/"
+
+  local file = vim.fn.input("New file path: ", vim.fn.getcwd() .. path_sep, "file")
+  if file ~= "" then
+    vim.cmd("e " .. file)
+  end
+end, { desc = "Create and open a new file" })
+
 -- Window Navigation
 map("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
 map("n", "<C-j>", "<C-w>j", { desc = "Move to lower window" })
@@ -508,6 +585,13 @@ map("n", "<leader>fr", ":Telescope oldfiles<CR>", { desc = "Recent Files" })
 map("n", "<leader>fp", function() require("telescope").extensions.project.project {} end, { desc = "Find Projects" })
 map("n", "<leader>gc", ":Telescope git_commits<CR>", { desc = "Git Commits" })
 map("n", "<leader>gs", ":Telescope git_status<CR>", { desc = "Git Status" })
+
+
+-- Overseer (Tasks runner)
+map("n", "<leader>or", ":OverseerRun<CR>", { desc = "Overseer: Run Task" })
+map("n", "<leader>ol", ":OverseerToggle<CR>", { desc = "Overseer: Toggle" })
+map("n", "<leader>oq", ":OverseerQuickAction<CR>", { desc = "Overseer: Quick Action" })
+
 
 -- CopilotChat
 local chat = pcall(require, "CopilotChat")
