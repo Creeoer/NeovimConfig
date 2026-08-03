@@ -177,6 +177,15 @@ require("lazy").setup({
     end,
   },
   {
+    "dlyongemallo/diffview.nvim",
+    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory" },
+    keys = {
+      { "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "Git: Review working tree" },
+      { "<leader>gD", "<cmd>DiffviewFileHistory<CR>", desc = "Git: File history" },
+    },
+    opts = {},
+  },
+  {
     "echasnovski/mini.files",
     version = "*",
     -- OPTIONAL: icons (mini.files can use mini.icons or devicons)
