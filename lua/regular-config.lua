@@ -423,20 +423,17 @@ require("lazy").setup({
         map("n", "<leader>F", function() vim.lsp.buf.format({ async = true }) end)
       end
 
-      -- Setup mason-lspconfig to bridge Mason and lspconfig
-      require("mason-lspconfig").setup({
-        ensure_installed = { "ts_ls", "html", "cssls", "jsonls", "clangd", "pyright",
-          "gopls", "rust_analyzer" },
-        automatic_installation = true,
-        handlers = {
-          function(server) require("lspconfig")[server].setup({ capabilities = capabilities, on_attach = on_attach }) end,
-        },
-      })
-
-      -- Specific setup for Java (jdtls)
-      require("lspconfig").jdtls.setup({
+      -- Neovim 0.11+ owns LSP configuration. Apply shared settings before
+      -- Mason enables the installed server definitions from nvim-lspconfig.
+      vim.lsp.config("*", {
         capabilities = capabilities,
         on_attach = on_attach,
+      })
+
+      require("mason-lspconfig").setup({
+        ensure_installed = { "ts_ls", "html", "cssls", "jsonls", "clangd", "pyright",
+          "gopls", "rust_analyzer", "jdtls" },
+        automatic_enable = true,
       })
     end,
   },
