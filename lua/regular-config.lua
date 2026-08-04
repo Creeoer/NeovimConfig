@@ -70,6 +70,7 @@ require("lazy").setup({
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
+      vim.opt.runtimepath:append(vim.fn.stdpath("data") .. "/site")
       require("nvim-treesitter.configs").setup({
         ensure_installed = {
           "lua", "vim", "vimdoc", "java",
@@ -432,7 +433,7 @@ require("lazy").setup({
 
       require("mason-lspconfig").setup({
         ensure_installed = { "ts_ls", "html", "cssls", "jsonls", "clangd", "pyright",
-          "gopls", "rust_analyzer", "jdtls" },
+          "rust_analyzer", "jdtls" },
         automatic_enable = true,
       })
     end,
@@ -464,7 +465,7 @@ require("lazy").setup({
     dependencies = { "williamboman/mason.nvim", "mfussenegger/nvim-dap" },
     opts = {
       automatic_installation = true,
-      ensure_installed = { "python", "js", "codelldb", "delve", "coreclr", "php", "bash" },
+      ensure_installed = { "python", "js", "codelldb", "coreclr", "php", "bash" },
       handlers = {
         codelldb = function(config)
           require("mason-nvim-dap").default_setup(config)
