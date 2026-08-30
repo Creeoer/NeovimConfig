@@ -5,6 +5,8 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+local platform = require("platform")
+
 -- Core opts
 vim.g.mapleader = " "
 vim.opt.number = true
@@ -376,6 +378,57 @@ require("lazy").setup({
   },
   { "CopilotC-Nvim/CopilotChat.nvim", branch = "main",     dependencies = { "nvim-lua/plenary.nvim", "zbirenbaum/copilot.lua" }, opts = {} },
 
+  -- Agent workflows (Codex ACP + authenticated Claude/Codex CLIs)
+  {
+    "olimorris/codecompanion.nvim",
+    version = "^19.0.0",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    opts = {
+      adapters = {
+        acp = {
+          codex = function()
+            local command = platform.is_windows and "codex-acp.cmd" or "codex-acp"
+            return require("codecompanion.adapters").extend("codex", {
+              commands = {
+                default = { command },
+              },
+              defaults = {
+                auth_method = "chat-gpt",
+              },
+            })
+          end,
+        },
+      },
+      interactions = {
+        chat = {
+          adapter = "codex",
+        },
+        cli = {
+          agent = "claude_code",
+          agents = {
+            claude_code = {
+              cmd = platform.is_windows and "claude.cmd" or "claude",
+              args = {},
+              description = "Claude Code CLI (subscription)",
+            },
+            codex = {
+              cmd = platform.is_windows and "codex.exe" or "codex",
+              args = {},
+              description = "OpenAI Codex CLI (ChatGPT subscription)",
+            },
+          },
+          opts = {
+            auto_insert = true,
+            reload = true,
+          },
+        },
+      },
+    },
+  },
+
   -- Harpoon 2
   { "ThePrimeagen/harpoon",           branch = "harpoon2", dependencies = { "nvim-lua/plenary.nvim" } },
 
@@ -498,7 +551,7 @@ require("toggleterm").setup({ open_mapping = [[<c-\>]], direction = "horizontal"
 
 -- DAP setup (language-specific configurations)
 do
-  pcall(require("dap-python").setup, "python3")
+  pcall(require("dap-python").setup, platform.python())
   pcall(require("dap-go").setup)
 
   local dap = require("dap")
@@ -508,8 +561,7 @@ do
       type = "codelldb",
       request = "launch",
       program = function()
-        local path_sep = vim.fn.has("win32") and "\\" or "/"
-        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. path_sep, 'file')
+        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. platform.path_separator, 'file')
       end,
       cwd = '${workspaceFolder}',
       stopOnEntry = false,
@@ -531,7 +583,7 @@ do
       type = "codelldb", -- Uses the same adapter as C/C++
       request = "launch",
       program = function()
-        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. platform.path_separator, 'file')
       end,
       cwd = '${workspaceFolder}',
       stopOnEntry = false,
@@ -563,11 +615,9 @@ map("n", "<leader>/", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 
 --File creation
 map("n", "<leader>fn", function()
-  local path_sep = vim.fn.has("win32") and "\\" or "/"
-
-  local file = vim.fn.input("New file path: ", vim.fn.getcwd() .. path_sep, "file")
+  local file = vim.fn.input("New file path: ", vim.fn.getcwd() .. platform.path_separator, "file")
   if file ~= "" then
-    vim.cmd("e " .. file)
+    vim.cmd.edit(vim.fn.fnameescape(file))
   end
 end, { desc = "Create and open a new file" })
 
@@ -611,6 +661,14 @@ if chat then
     { desc = "CopilotChat: Tests" })
   map("n", "<leader>cc", function() require("CopilotChat").toggle() end, { desc = "CopilotChat: Toggle" })
 end
+
+-- CodeCompanion
+map({ "n", "v" }, "<leader>aa", ":CodeCompanionActions<CR>", { desc = "CodeCompanion: Actions" })
+map("n", "<leader>ac", ":CodeCompanionChat Toggle<CR>", { desc = "CodeCompanion: Toggle Codex chat" })
+map("v", "<leader>ap", ":CodeCompanionChat Add<CR>", { desc = "CodeCompanion: Add selection" })
+map("n", "<leader>al", ":CodeCompanionCLI<CR>", { desc = "CodeCompanion: Claude CLI" })
+map("n", "<leader>aL", ":CodeCompanionCLI agent=codex<CR>", { desc = "CodeCompanion: Codex CLI" })
+
 -- DAP (Debugging)
 do
   local dap_ok, dap = pcall(require, "dap")

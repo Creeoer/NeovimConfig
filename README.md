@@ -1,42 +1,78 @@
-# Neovim Configuration for VSCode
+# Neovim Configuration
 
-My personal Neovim configuration optimized for VSCode integration with WSL. It also includes a regular neovim configuration
-that uses the lazy plugin manager and several QoL plugins (Telescope, Treesitter, nvim-surround, Mason) etc.
+My Neovim setup for terminal Neovim and the VSCode Neovim extension. The same
+configuration is designed to run on Windows, Linux, macOS, and WSL.
 
-## Quick Start
+## Requirements
 
-1. Install WSL2 & Neovim. Or install Neovim on Windows.
-2. Install the Neovim extension for VSCode.
-3. If installed on Windows, ensure that the path in settings.json points to the correct Neovim executable.
-4. If installed on WSL, make sure Neovim is installed in WSL and the path in settings.json points to the WSL Neovim. Also ensure that the useWSL setting is set to true.
-5. Grab the config files and drop them in your `~/.config/nvim` directory (WSL or Windows).
-6. Done! You may enable or disable the lazyvim plugins by editing the vscode-lazy.lua file.
-7. You can edit the keybindings in the vscode-config.lua file.
+- Neovim 0.11 or newer
+- Git and curl
+- Node.js and npm (used by several language tools and agent CLIs)
+- ripgrep (used by Telescope)
+- A Nerd Font for terminal icons
+- A platform clipboard provider: native clipboard support on Windows/macOS, or
+  `wl-clipboard`/`xclip` on Linux
 
-Optional: If desired, you may install the VS Project Manager + VS Harpoon to replicate neovim-like functionality. The keybindings are already present
-in the vscode-config.lua file
+Language tooling is optional and can be installed per machine through Mason or
+the system package manager. The task runner detects `python3`/`python`, common C
+and C++ compilers, and Java 11+ without relying on Bash.
 
-## Features
+## Install
 
-- VSCode-specific keybindings
-- Efficient file navigation
-- Vim motions optimized for VSCode
-- Terminal Neovim that includes telescope, harpoon, tree sitter, Mason, etc
+Back up any existing Neovim configuration first, then clone this repository to
+Neovim's standard config directory.
 
-## Installation
+### Windows (PowerShell)
 
-### Prerequisites
+```powershell
+git clone https://github.com/Creeoer/NeovimConfig.git "$env:LOCALAPPDATA\nvim"
+nvim
+```
 
-- WSL2 with Ubuntu if using WSL
-- Neovim 0.8+
-- VSCode with Neovim extension
-
-### Quick Configuration Install
+### Linux, macOS, or WSL
 
 ```bash
-# Clone this config
-git clone https://github.com/Creeoer/NeovimConfig.git ~/.config/nvim
+git clone https://github.com/Creeoer/NeovimConfig.git "${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+nvim
+```
 
-# Open VSCode and install the Neovim extension
-# Set the neovim executable path in VSCode settings:
-# "vscode-neovim.neovimExecutablePaths.linux": "/usr/bin/nvim"
+Lazy.nvim installs plugins on the first launch. Do not copy Neovim's data
+directory (`nvim-data` on Windows or `~/.local/share/nvim` on Unix) between
+operating systems; let each machine build its own plugin and Mason binaries.
+
+## Agent integration
+
+CodeCompanion provides agent chat, actions, selection context, and CLI sessions.
+Install and authenticate the agents you want to use separately on each machine:
+
+- `codex-acp` for the default CodeCompanion chat
+- `claude` for Claude Code CLI sessions
+- `codex` for Codex CLI sessions
+
+Key mappings:
+
+- `<leader>aa`: actions
+- `<leader>ac`: toggle Codex chat
+- Visual `<leader>ap`: add the selection to chat
+- `<leader>al`: open a Claude CLI session
+- `<leader>aL`: open a Codex CLI session
+
+## VSCode Neovim
+
+Install the VSCode Neovim extension and point its platform-specific executable
+setting at the machine's `nvim` binary. Enable its WSL option when VSCode should
+run Neovim inside WSL. VSCode-specific behavior lives in `vscode-config.lua`;
+terminal behavior lives in `regular-config.lua`.
+
+## Health checks
+
+Inside Neovim, run:
+
+```vim
+:checkhealth
+:Lazy health
+:Mason
+```
+
+Missing language servers, debuggers, compilers, runtimes, or agent CLIs affect
+only their related workflows; the base editor and other plugins still load.
