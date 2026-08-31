@@ -5,8 +5,9 @@ configuration is designed to run on Windows, Linux, macOS, and WSL.
 
 ## Requirements
 
-- Neovim 0.11 or newer
-- Git and curl
+- Neovim 0.12 or newer
+- Git, curl, and tar
+- Tree-sitter CLI 0.26.1 or newer and a C compiler (used to build syntax parsers)
 - Node.js and npm (used by several language tools and agent CLIs)
 - ripgrep (used by Telescope)
 - A Nerd Font for terminal icons
@@ -56,6 +57,31 @@ Key mappings:
 - Visual `<leader>ap`: add the selection to chat
 - `<leader>al`: open a Claude CLI session
 - `<leader>aL`: open a Codex CLI session
+
+## TypeScript development
+
+TypeScript and isolated `.ts` files use `vtsls`. The setup also installs ESLint,
+Prettier, JavaScript debugging, and language support for React/Next.js, Vue,
+Svelte, Astro, Tailwind CSS, and Emmet. Vue uses the official TypeScript plugin.
+
+Formatting runs on save with project-local Prettier settings when available.
+ESLint reads the project's flat or legacy config and publishes diagnostics.
+
+Useful mappings:
+
+- `<leader>F`: format the current buffer
+- `<leader>lo`: organize TypeScript imports
+- `<leader>lx`: apply all available ESLint fixes
+- `<leader>ca`: show LSP and ESLint code actions
+- `<leader>ob`: run the project's `npm run build` script
+- `<leader>ot`: run the project's `npm run test` script
+- `<leader>od`: run the project's `npm run dev` script
+- `<leader>or`: choose any available Overseer task or package script
+
+Projects should install TypeScript, Prettier, ESLint, and any framework-specific
+Prettier plugins locally as development dependencies. After Mason finishes its
+first installation on a new machine, restart Neovim once so every new language
+server is available.
 
 ## VSCode Neovim
 

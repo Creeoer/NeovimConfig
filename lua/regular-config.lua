@@ -73,15 +73,32 @@ require("lazy").setup({
     lazy = false,
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter").setup({
-        install_dir = vim.fn.stdpath("data") .. "/site",
-      })
+      local parsers = {
+        "javascript", "typescript", "tsx", "json", "html", "css",
+        "vue", "svelte", "astro",
+      }
+      vim.treesitter.language.register("json", "jsonc")
+      local treesitter = require("nvim-treesitter")
+      if type(treesitter.install) == "function" then
+        -- Current nvim-treesitter API.
+        treesitter.setup({
+          install_dir = vim.fn.stdpath("data") .. "/site",
+        })
+        treesitter.install(parsers)
 
-      vim.api.nvim_create_autocmd("FileType", {
-        callback = function()
-          pcall(vim.treesitter.start)
-        end,
-      })
+        vim.api.nvim_create_autocmd("FileType", {
+          callback = function()
+            pcall(vim.treesitter.start)
+          end,
+        })
+      else
+        -- Compatibility with the legacy API used by older lockfiles.
+        treesitter.setup()
+        require("nvim-treesitter.configs").setup({
+          ensure_installed = parsers,
+          highlight = { enable = true },
+        })
+      end
     end,
   },
   --Overseer (Tasks)
@@ -89,8 +106,15 @@ require("lazy").setup({
     "stevearc/overseer.nvim",
     config = function()
       require("overseer").setup({
-
-        templates = { "builtin", "user.c_cpp_build_run", "user.python_run", "user.java_build_run" },
+        templates = {
+          "builtin",
+          "user.c_cpp_build_run",
+          "user.python_run",
+          "user.java_build_run",
+          "user.npm_build",
+          "user.npm_test",
+          "user.npm_dev",
+        },
       })
     end,
   },
@@ -443,9 +467,21 @@ require("lazy").setup({
           java = { "google-java-format" },
           c = { "clang-format" },
           cpp = { "clang-format" },
-          --   ["*"] = { "prettierd", "prettier" },
+          javascript = { "prettierd", "prettier", stop_after_first = true },
+          javascriptreact = { "prettierd", "prettier", stop_after_first = true },
+          typescript = { "prettierd", "prettier", stop_after_first = true },
+          typescriptreact = { "prettierd", "prettier", stop_after_first = true },
+          vue = { "prettierd", "prettier", stop_after_first = true },
+          svelte = { "prettierd", "prettier", stop_after_first = true },
+          astro = { "prettierd", "prettier", stop_after_first = true },
+          json = { "prettierd", "prettier", stop_after_first = true },
+          jsonc = { "prettierd", "prettier", stop_after_first = true },
+          html = { "prettierd", "prettier", stop_after_first = true },
+          css = { "prettierd", "prettier", stop_after_first = true },
+          scss = { "prettierd", "prettier", stop_after_first = true },
+          markdown = { "prettierd", "prettier", stop_after_first = true },
         },
-        format_on_save = { lsp_fallback = true, timeout_ms = 500 },
+        format_on_save = { lsp_format = "fallback", timeout_ms = 2000 },
       })
     end
   },
@@ -463,36 +499,124 @@ require("lazy").setup({
       "williamboman/mason-lspconfig.nvim",
     },
     config = function()
-      -- This function contains all LSP setup logic
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
-      local function on_attach(_, bufnr)
-        local map = function(m, l, r) vim.keymap.set(m, l, r, { buffer = bufnr, silent = true }) end
-        map("n", "gd", vim.lsp.buf.definition)
-        map("n", "K", vim.lsp.buf.hover)
-        map("n", "gr", vim.lsp.buf.references)
-        map("n", "<leader>ca", vim.lsp.buf.code_action)
-        map("n", "<leader>rn", vim.lsp.buf.rename)
-        map("n", "[d", vim.diagnostic.goto_prev)
-        map("n", "]d", vim.diagnostic.goto_next)
-        map("n", "<leader>F", function() vim.lsp.buf.format({ async = true }) end)
-      end
+
+      local lsp_group = vim.api.nvim_create_augroup("user_lsp_keymaps", { clear = true })
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = lsp_group,
+        callback = function(args)
+          local bufnr = args.buf
+          local map = function(m, l, r, desc)
+            vim.keymap.set(m, l, r, { buffer = bufnr, silent = true, desc = desc })
+          end
+          map("n", "gd", vim.lsp.buf.definition, "LSP: Definition")
+          map("n", "K", vim.lsp.buf.hover, "LSP: Hover")
+          map("n", "gr", vim.lsp.buf.references, "LSP: References")
+          map("n", "<leader>ca", vim.lsp.buf.code_action, "LSP: Code action")
+          map("n", "<leader>rn", vim.lsp.buf.rename, "LSP: Rename")
+          map("n", "[d", vim.diagnostic.goto_prev, "Diagnostic: Previous")
+          map("n", "]d", vim.diagnostic.goto_next, "Diagnostic: Next")
+          map("n", "<leader>F", function()
+            require("conform").format({ async = true, lsp_format = "fallback" })
+          end, "Format buffer")
+          map("n", "<leader>lo", function()
+            vim.lsp.buf.code_action({
+              apply = true,
+              context = { only = { "source.organizeImports" }, diagnostics = {} },
+            })
+          end, "TypeScript: Organize imports")
+          map("n", "<leader>lx", function()
+            if vim.fn.exists(":LspEslintFixAll") == 2 then
+              vim.cmd.LspEslintFixAll()
+            else
+              vim.notify("ESLint is not attached to this buffer", vim.log.levels.WARN)
+            end
+          end, "ESLint: Fix all")
+        end,
+      })
 
       -- Neovim 0.11+ owns LSP configuration. Apply shared settings before
       -- Mason enables the installed server definitions from nvim-lspconfig.
       vim.lsp.config("*", {
         capabilities = capabilities,
-        on_attach = on_attach,
       })
 
+      local function typescript_root(bufnr, on_dir)
+        local lockfiles = { "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "bun.lock" }
+        local project_files = { "tsconfig.json", "jsconfig.json", "package.json" }
+        local root = vim.fs.root(bufnr, lockfiles) or vim.fs.root(bufnr, project_files)
+        if not root then
+          local filename = vim.api.nvim_buf_get_name(bufnr)
+          root = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+        end
+        on_dir(root)
+      end
+
+      local vue_plugin_path = vim.fs.joinpath(
+        vim.fn.stdpath("data"),
+        "mason", "packages", "vue-language-server", "node_modules", "@vue", "language-server"
+      )
+      vim.lsp.config("vtsls", {
+        root_dir = typescript_root,
+        filetypes = {
+          "javascript", "javascriptreact", "javascript.jsx",
+          "typescript", "typescriptreact", "typescript.tsx", "vue",
+        },
+        settings = {
+          vtsls = {
+            tsserver = {
+              globalPlugins = {
+                {
+                  name = "@vue/typescript-plugin",
+                  location = vue_plugin_path,
+                  languages = { "vue" },
+                  configNamespace = "typescript",
+                },
+              },
+            },
+          },
+        },
+      })
+
+      -- vscode-eslint-language-server's legacy FlatESLint path was removed in
+      -- ESLint 10. The standard ESLint class supports flat config and works
+      -- across ESLint 9 and 10.
+      local eslint_before_init = vim.lsp.config.eslint.before_init
+      vim.lsp.config("eslint", {
+        before_init = function(params, config)
+          if eslint_before_init then
+            eslint_before_init(params, config)
+          end
+          config.settings = config.settings or {}
+          config.settings.experimental = config.settings.experimental or {}
+          config.settings.experimental.useFlatConfig = false
+        end,
+      })
+
+      -- The richer vtsls client replaces ts_ls and also supplies Vue's
+      -- TypeScript features through the official Vue plugin.
+      vim.lsp.enable("ts_ls", false)
+
       require("mason-lspconfig").setup({
-        ensure_installed = { "ts_ls", "html", "cssls", "jsonls", "clangd", "pyright",
-          "rust_analyzer", "jdtls" },
-        automatic_enable = true,
+        ensure_installed = {
+          "vtsls", "eslint", "vue_ls", "svelte", "astro", "tailwindcss", "emmet_language_server",
+          "html", "cssls", "jsonls", "clangd", "pyright", "rust_analyzer", "jdtls",
+        },
+        automatic_enable = { exclude = { "ts_ls" } },
       })
     end,
   },
 
   { "williamboman/mason.nvim", config = true }, -- NOTE: `config = true` calls mason.setup()
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    opts = {
+      ensure_installed = { "prettierd" },
+      run_on_start = true,
+      start_delay = 500,
+    },
+  },
 
   { "mfussenegger/nvim-dap" },
   {
@@ -648,6 +772,9 @@ map("n", "<leader>gs", ":Telescope git_status<CR>", { desc = "Git Status" })
 map("n", "<leader>or", ":OverseerRun<CR>", { desc = "Overseer: Run Task" })
 map("n", "<leader>ol", ":OverseerToggle<CR>", { desc = "Overseer: Toggle" })
 map("n", "<leader>oq", ":OverseerQuickAction<CR>", { desc = "Overseer: Quick Action" })
+map("n", "<leader>ob", function() require("project_tasks").run("build") end, { desc = "npm: Build" })
+map("n", "<leader>ot", function() require("project_tasks").run("test") end, { desc = "npm: Test" })
+map("n", "<leader>od", function() require("project_tasks").run("dev") end, { desc = "npm: Dev server" })
 
 
 -- CopilotChat
