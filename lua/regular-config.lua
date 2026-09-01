@@ -7,6 +7,21 @@ vim.opt.rtp:prepend(lazypath)
 
 local platform = require("platform")
 
+if platform.is_windows then
+  -- Prefer user-managed development tools over bundled application runtimes
+  -- such as Inkscape's incomplete python.exe and BusyBox utilities.
+  local preferred_paths = {
+    vim.fn.expand("~/scoop/apps/python/current"),
+    vim.fn.expand("~/scoop/shims"),
+  }
+  for index = #preferred_paths, 1, -1 do
+    local path = preferred_paths[index]
+    if vim.fn.isdirectory(path) == 1 then
+      vim.env.PATH = path .. ";" .. vim.env.PATH
+    end
+  end
+end
+
 -- Core opts
 vim.g.mapleader = " "
 vim.opt.number = true
@@ -75,7 +90,7 @@ require("lazy").setup({
     config = function()
       local parsers = {
         "javascript", "typescript", "tsx", "json", "html", "css",
-        "vue", "svelte", "astro",
+        "vue", "svelte", "astro", "diff", "markdown", "markdown_inline", "yaml",
       }
       vim.treesitter.language.register("json", "jsonc")
       local treesitter = require("nvim-treesitter")
@@ -559,8 +574,8 @@ require("lazy").setup({
       vim.lsp.config("vtsls", {
         root_dir = typescript_root,
         filetypes = {
-          "javascript", "javascriptreact", "javascript.jsx",
-          "typescript", "typescriptreact", "typescript.tsx", "vue",
+          "javascript", "javascriptreact",
+          "typescript", "typescriptreact", "vue",
         },
         settings = {
           vtsls = {
@@ -583,6 +598,10 @@ require("lazy").setup({
       -- across ESLint 9 and 10.
       local eslint_before_init = vim.lsp.config.eslint.before_init
       vim.lsp.config("eslint", {
+        filetypes = {
+          "javascript", "javascriptreact", "typescript", "typescriptreact",
+          "vue", "svelte", "astro", "htmlangular",
+        },
         before_init = function(params, config)
           if eslint_before_init then
             eslint_before_init(params, config)
@@ -612,7 +631,10 @@ require("lazy").setup({
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     dependencies = { "williamboman/mason.nvim" },
     opts = {
-      ensure_installed = { "prettierd" },
+      ensure_installed = {
+        "black", "clang-format", "google-java-format", "prettier",
+        "prettierd", "ruff", "stylua",
+      },
       run_on_start = true,
       start_delay = 500,
     },
@@ -656,6 +678,8 @@ require("lazy").setup({
   { "leoluz/nvim-dap-go" },
   -- Java nvim
   { "nvim-java/nvim-java" },
+}, {
+  rocks = { enabled = false },
 })
 
 -- Harpoon 2 setup
