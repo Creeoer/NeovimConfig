@@ -89,7 +89,7 @@ require("lazy").setup({
     build = ":TSUpdate",
     config = function()
       local parsers = {
-        "lua", "vim", "vimdoc", "query", "bash", "python", "sql", "dockerfile", "toml",
+        "lua", "vim", "vimdoc", "query", "bash", "python", "rust", "sql", "dockerfile", "toml",
         "javascript", "typescript", "tsx", "json", "html", "css",
         "vue", "svelte", "astro", "diff", "markdown", "markdown_inline", "yaml",
       }
@@ -116,6 +116,28 @@ require("lazy").setup({
         })
       end
     end,
+  },
+  -- Markdown editing and preview
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = { "markdown" },
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    opts = { render_modes = { "n", "c" } },
+    keys = {
+      { "<leader>mr", "<cmd>RenderMarkdown buf_toggle<CR>", desc = "Markdown: Toggle rendered view" },
+    },
+  },
+  {
+    "brianhuster/live-preview.nvim",
+    cmd = { "LivePreview" },
+    dependencies = { "nvim-telescope/telescope.nvim" },
+    config = function()
+      require("livepreview.config").set({ address = "127.0.0.1", picker = "telescope" })
+    end,
+    keys = {
+      { "<leader>mp", "<cmd>LivePreview start<CR>", desc = "Markdown: Browser preview" },
+      { "<leader>mP", "<cmd>LivePreview close<CR>", desc = "Markdown: Stop browser preview" },
+    },
   },
   --Overseer (Tasks)
   {
@@ -667,7 +689,7 @@ require("lazy").setup({
       require("mason-lspconfig").setup({
         ensure_installed = {
           "vtsls", "eslint", "vue_ls", "svelte", "astro", "tailwindcss", "emmet_language_server",
-          "html", "cssls", "jsonls", "yamlls", "bashls", "dockerls", "lua_ls",
+          "html", "cssls", "jsonls", "yamlls", "bashls", "dockerls", "lua_ls", "marksman",
           "clangd", "pyright", "ruff", "rust_analyzer", "jdtls",
         },
         automatic_enable = { exclude = { "ts_ls" } },

@@ -102,6 +102,7 @@ The terminal profile currently uses these plugins:
 | Files and navigation       | `telescope.nvim`, `telescope-project.nvim`, `nvim-tree.lua`, `mini.files`, `harpoon` (Harpoon 2), `flash.nvim`                                                            |
 | Editing and completion     | `nvim-treesitter`, `nvim-autopairs`, `Comment.nvim`, `nvim-surround`, `nvim-cmp`, `LuaSnip`, `friendly-snippets`, `cmp-nvim-lsp`, `cmp-buffer`, `cmp-path`, `cmp_luasnip` |
 | Git and diagnostics        | `gitsigns.nvim`, `diffview.nvim`, `trouble.nvim`                                                                                                                          |
+| Markdown                   | `render-markdown.nvim`, `live-preview.nvim`, Marksman LSP                                                                                                               |
 | LSP, formatting, and tasks | `nvim-lspconfig`, `mason.nvim`, `mason-lspconfig.nvim`, `mason-tool-installer.nvim`, `conform.nvim`, `overseer.nvim`, `toggleterm.nvim`, `nvim-java`                      |
 | Debugging                  | `nvim-dap`, `nvim-dap-ui`, `nvim-dap-virtual-text`, `mason-nvim-dap.nvim`, `nvim-dap-python`, `nvim-dap-go`                                                               |
 | AI                         | `copilot.lua`, `CopilotChat.nvim`, `codecompanion.nvim`                                                                                                                   |
@@ -223,6 +224,46 @@ the mobile Hermes runtime. Native modules use Android Studio or Xcode debugging.
 Device builds also require the project's Android SDK/JDK or Xcode/CocoaPods
 setup; the Neovim configuration does not provision those platform SDKs.
 
+## Rust development
+
+Rust uses rust-analyzer for completion, navigation, diagnostics, and rustfmt
+formatting through `Space F` and format on save. The Rust Tree-sitter parser is
+installed automatically for syntax highlighting, including Rust code fences
+inside Markdown. Install a Rust toolchain with Cargo, rustfmt, Clippy, and
+standard-library sources on each machine. For rustup-managed toolchains, use
+`rustup component add rust-src rustfmt clippy`.
+
+Open the Cargo workspace from its root. `Space o r` offers Cargo build, run,
+test, check, Clippy, and formatting tasks. To debug, build first, press
+`Space d c`, and select the compiled executable (usually under `target/debug`).
+CodeLLDB is installed through Mason. Executable selection is manual.
+
+## Markdown editing and preview
+
+Markdown uses Tree-sitter highlighting, soft wrapping, word-boundary display,
+spell checking, and Marksman for heading/link completion, definitions,
+references, and diagnostics. Add a `.marksman.toml` file or use a Git repository
+for multi-file Markdown navigation. `Space F` formats with Prettier; formatting
+on save follows the same project-configuration rule as web files.
+
+`render-markdown.nvim` displays headings, lists, checkboxes, tables, and code
+blocks inside the editable buffer in normal mode. Insert mode shows the source
+for editing; `Space m r` toggles the rendered view for the current buffer.
+
+- `Space m p`: open a live Markdown preview in the default browser
+- `Space m P`: stop the preview server
+- `:LivePreview pick`: select another document with Telescope
+- `:RenderMarkdown preview`: open a rendered view beside the source
+
+Open Neovim from the project root so browser-preview relative links and images
+resolve within the project. The preview server listens on `127.0.0.1:5500` and
+updates Markdown while typing, including unsaved edits to a named file. It
+supports Mermaid diagrams and math rendering. A modern browser is required.
+
+In the VSCode Neovim profile, `Space m p` opens VSCode's built-in Markdown
+preview to the side. VSCode provides Markdown editing and preview in that
+profile.
+
 ## Kinetic / pnpm workspaces
 
 Run `pnpm install --frozen-lockfile` from Kinetic's root before editing.
@@ -280,7 +321,13 @@ imports, Pyright and Ruff diagnostics, Ruff formatting, run and pytest tasks,
 and a real debugpy launch using the project interpreter. React Native checks
 cover TSX prop completion and diagnostics against React Native 0.87.1, Prettier,
 and React Native / Expo script and package-manager selection. Device builds and
-emulator debugging have not been tested by these editor checks. Run
+emulator debugging have not been tested by these editor checks. Rust checks
+cover parser loading, type diagnostics, formatting, and Markdown code-fence
+injections. Markdown checks cover cross-file link definitions, heading outline,
+rendered decorations and toggle, formatting, and buffer-local editing options.
+The preview checks cover HTTP asset delivery, bundled Markdown rendering,
+unsaved updates over WebSocket, and server shutdown; its browser UI has not
+been visually verified. Run
 `:checkhealth` after installing on each machine to verify its local tools.
 
 Missing language servers, debuggers, compilers, runtimes, or agent CLIs affect

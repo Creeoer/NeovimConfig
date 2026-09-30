@@ -103,6 +103,19 @@ server.
 | N     | `<leader>ma` | Run the mobile package's Android script |
 | N/I/T | `<C-\>`      | Toggle the horizontal terminal           |
 
+### Markdown
+
+| Mode | Keys         | Action                                      |
+| ---- | ------------ | ------------------------------------------- |
+| N    | `<leader>mp` | Open live browser preview                   |
+| N    | `<leader>mP` | Stop the browser preview server             |
+| N    | `<leader>mr` | Toggle rendered Markdown in the current buffer |
+| N/V  | `<leader>F`  | Format Markdown with Prettier               |
+
+`:RenderMarkdown preview` opens a rendered view beside the editable source.
+`:LivePreview pick` chooses a document with Telescope. Start Neovim at the
+project root for browser-preview relative links and images.
+
 ### AI
 
 #### CodeCompanion and CopilotChat entry points
@@ -285,6 +298,7 @@ Neovim extension.
 | N    | `<leader>so`                                           | Close other editors                                   |
 | N    | `<C-h>`, `<C-j>`, `<C-k>`, `<C-l>`                     | Focus left, lower, upper, or right group              |
 | N    | `<leader>mh`, `<leader>mj`, `<leader>mk`, `<leader>ml` | Move editor to the left, lower, upper, or right group |
+| N    | `<leader>mp` | Open VSCode's Markdown preview to the side |
 
 ### Code, diagnostics, and terminal
 

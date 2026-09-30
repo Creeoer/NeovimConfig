@@ -68,6 +68,10 @@ map("n", "<leader>fm", function() vs.action("editor.action.formatDocument") end,
 map("v", "<leader>fm", function() vs.action("editor.action.formatSelection") end, opts)
 map("n", "<leader>oi", function() vs.action("editor.action.organizeImports") end, opts)
 
+-- Markdown uses VSCode's built-in preview alongside the editable source.
+map("n", "<leader>mp", function() vs.action("markdown.showPreviewToSide") end,
+  { silent = true, desc = "Markdown: Preview to side" })
+
 -- ========================================
 -- TERMINAL
 -- ========================================
