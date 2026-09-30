@@ -1,5 +1,5 @@
 return {
-    name = "npm: dev",
+    name = "Package: dev",
     builder = function()
         return require("project_tasks").spec("dev")
     end,

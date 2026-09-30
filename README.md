@@ -107,8 +107,10 @@ The terminal profile currently uses these plugins:
 | AI                         | `copilot.lua`, `CopilotChat.nvim`, `codecompanion.nvim`                                                                                                                   |
 | Shared support             | `plenary.nvim`, `nui.nvim`, `nvim-nio`, `nvim-web-devicons`                                                                                                               |
 
-`lazy-lock.json` is the source of truth for the exact installed revisions and
-transitive dependencies. In VSCode, the config uses LazyVim's VSCode profile
+`lazy-lock.json` pins the terminal profile; `lazy-lock-vscode.json` pins the
+VSCode profile. The profiles also use separate plugin directories (`lazy` and
+`lazy-vscode`), so syncing one does not remove or downgrade the other's plugins.
+In VSCode, the config uses LazyVim's VSCode profile
 and Flash while disabling terminal-only UI, completion, and LSP plugins so
 VSCode can provide those features.
 
@@ -143,7 +145,9 @@ TypeScript and isolated `.ts` files use `vtsls`. The setup also installs ESLint,
 Prettier, JavaScript debugging, and language support for React/Next.js, Vue,
 Svelte, Astro, Tailwind CSS, and Emmet. Vue uses the official TypeScript plugin.
 
-Formatting runs on save with project-local Prettier settings when available.
+Formatting runs on save when a project has a Prettier configuration (including
+the `prettier` field in `package.json`). Explicit formatting works even without
+a project configuration. Project-local Prettier settings are respected.
 ESLint reads the project's flat or legacy config and publishes diagnostics.
 Project-local TypeScript, Prettier, ESLint, and framework-specific Prettier
 plugins should be installed as development dependencies.
@@ -154,10 +158,42 @@ Useful entry points are:
 - `Space l o`: organize TypeScript imports
 - `Space l x`: apply all available ESLint fixes
 - `Space c a`: show LSP and ESLint code actions
-- `Space o b`: run `npm run build`
-- `Space o t`: run `npm run test`
-- `Space o d`: run `npm run dev`
+- `Space o b`: run the current package's build script
+- `Space o t`: run the current package's test script
+- `Space o d`: run the current package's dev script
+- `Space o c`: run the current package's typecheck script
+- `Space o B`, `Space o T`, `Space o C`: build, test, or typecheck the entire workspace
 - `Space o r`: choose any available Overseer task or package script
+
+## Kinetic / pnpm workspaces
+
+Run `pnpm install --frozen-lockfile` from Kinetic's root before editing.
+The task runner detects `packageManager` and workspace lockfiles, so Kinetic
+uses its pinned pnpm rather than npm. Lowercase task keys target the package
+containing the current file; uppercase keys target the workspace root.
+
+`vtsls` starts at each package root and uses its workspace TypeScript SDK.
+This supports Kinetic's Next.js apps on TypeScript 5.7 and its voice/shared
+packages on TypeScript 5.9, including tsconfig paths and React/TSX completion.
+Tailwind v4 discovers each app through its PostCSS config and CSS entry point,
+and supports class completion in `cn`, `clsx`, `cva`, and `twMerge`. The CSS
+server retains ordinary validation without flagging Tailwind at-rules.
+Kinetic currently has no ESLint or Prettier configuration; ESLint attaches
+when a config is present, and `Space F` runs Prettier explicitly.
+
+JSON, YAML, Python, Dockerfile, shell, and Lua language servers are installed
+through Mason. Tree-sitter covers these languages plus PostgreSQL migration
+syntax. SQL highlighting does not require a database connection.
+
+`Space d c` offers Node launch and attach configurations for JS/TS/JSX/TSX.
+For a Next.js process, start the app with Node's inspector enabled (for example,
+`NODE_OPTIONS='--inspect' pnpm --filter @kinetic/app dev` on macOS/Linux), then
+choose **Attach to Node / Next.js (inspect)**. Browser client code requires a
+separate browser debug session.
+
+When `vim-herdr-navigation` is installed, `Ctrl+h/j/k/l` moves between Neovim
+splits and Herdr panes. The loader follows the installed plugin directory
+across Herdr updates and leaves VSCode's editor navigation with the extension.
 
 ## VSCode Neovim
 
@@ -176,11 +212,13 @@ The same tracked config is used on all supported operating systems. Platform
 differences such as executable names, path separators, clipboard behavior, and
 task commands are handled in `lua/platform.lua`.
 
-The current configuration and full health report have been validated on
-Windows 11 with Neovim 0.12.5. The macOS and Linux paths have been statically
-audited for portability; run `:checkhealth` after installing on each actual
-machine to verify its local compilers, runtimes, clipboard provider, and agent
-CLIs.
+The configuration has been validated on Windows 11 and macOS with Neovim
+0.12.5. The macOS Kinetic checks cover LSP attachment in all five packages,
+TypeScript error diagnostics, Tailwind v4 class completion, Prettier output,
+syntax parsers, pnpm task selection, and a real Node debugger launch stopping
+at entry. The VSCode profile passes a headless startup check with the extension
+API stubbed; test its UI in VSCode itself. Run `:checkhealth` after installing
+on each machine to verify its local tools.
 
 Missing language servers, debuggers, compilers, runtimes, or agent CLIs affect
 only their related workflows; the base editor and other plugins still load.

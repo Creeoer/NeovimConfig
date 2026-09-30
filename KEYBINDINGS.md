@@ -75,7 +75,7 @@ server.
 | N    | `<leader>ca` | Code actions                                                     |
 | N    | `<leader>rn` | Rename symbol                                                    |
 | N    | `[d`, `]d`   | Previous or next diagnostic                                      |
-| N    | `<leader>F`  | Format the buffer with Conform, falling back to LSP              |
+| N/V  | `<leader>F`  | Format the buffer or selection with Conform, falling back to LSP |
 | N    | `<leader>lo` | Organize TypeScript imports                                      |
 | N    | `<leader>lx` | Apply all ESLint fixes                                           |
 | I/S  | `<Tab>`      | Next completion item, expand snippet, or jump forward in snippet |
@@ -89,9 +89,13 @@ server.
 | N     | `<leader>or` | Select and run an Overseer task          |
 | N     | `<leader>ol` | Toggle the Overseer task list            |
 | N     | `<leader>oq` | Open Overseer quick actions              |
-| N     | `<leader>ob` | Run the project's `npm run build` script |
-| N     | `<leader>ot` | Run the project's `npm run test` script  |
-| N     | `<leader>od` | Run the project's `npm run dev` script   |
+| N     | `<leader>ob` | Build the current package (auto-detected package manager) |
+| N     | `<leader>ot` | Test the current package                |
+| N     | `<leader>od` | Start the current package's dev server  |
+| N     | `<leader>oc` | Typecheck the current package           |
+| N     | `<leader>oB` | Build the workspace                     |
+| N     | `<leader>oT` | Test the workspace                      |
+| N     | `<leader>oC` | Typecheck the workspace                 |
 | N/I/T | `<C-\>`      | Toggle the horizontal terminal           |
 
 ### AI

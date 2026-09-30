@@ -50,6 +50,7 @@ vim.diagnostic.config({
 
 -- Plugins
 require("lazy").setup({
+  { "folke/lazy.nvim", version = "*" },
   -- Theme
   {
     "navarasu/onedark.nvim",
@@ -72,7 +73,6 @@ require("lazy").setup({
   -- Telescope core
   {
     "nvim-telescope/telescope.nvim",
-    branch = "0.1.x",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       require("telescope").setup({
@@ -89,6 +89,7 @@ require("lazy").setup({
     build = ":TSUpdate",
     config = function()
       local parsers = {
+        "lua", "vim", "vimdoc", "query", "bash", "python", "sql", "dockerfile", "toml",
         "javascript", "typescript", "tsx", "json", "html", "css",
         "vue", "svelte", "astro", "diff", "markdown", "markdown_inline", "yaml",
       }
@@ -495,8 +496,21 @@ require("lazy").setup({
           css = { "prettierd", "prettier", stop_after_first = true },
           scss = { "prettierd", "prettier", stop_after_first = true },
           markdown = { "prettierd", "prettier", stop_after_first = true },
+          yaml = { "prettierd", "prettier", stop_after_first = true },
         },
-        format_on_save = { lsp_format = "fallback", timeout_ms = 2000 },
+        -- Unconfigured projects should not be reformatted just by saving.
+        -- Space F still formats explicitly using the installed formatter.
+        format_on_save = function(bufnr)
+          local filetype = vim.bo[bufnr].filetype
+          local web_filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro", "json", "jsonc", "html", "css", "scss", "markdown", "yaml" }
+          if vim.tbl_contains(web_filetypes, filetype) then
+            local info = require("conform").get_formatter_info("prettier", bufnr)
+            if not info.available then return end
+            local result = vim.system({ info.command, "--find-config-path", vim.api.nvim_buf_get_name(bufnr) }, { text = true }):wait(1000)
+            if result.code ~= 0 or not result.stdout or vim.trim(result.stdout) == "" then return end
+          end
+          return { lsp_format = "fallback", timeout_ms = 2000 }
+        end,
       })
     end
   },
@@ -510,8 +524,8 @@ require("lazy").setup({
   {
     "neovim/nvim-lspconfig",
     dependencies = {
-      "williamboman/mason.nvim",
-      "williamboman/mason-lspconfig.nvim",
+      "mason-org/mason.nvim",
+      "mason-org/mason-lspconfig.nvim",
     },
     config = function()
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -559,7 +573,9 @@ require("lazy").setup({
       local function typescript_root(bufnr, on_dir)
         local lockfiles = { "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "bun.lock" }
         local project_files = { "tsconfig.json", "jsconfig.json", "package.json" }
-        local root = vim.fs.root(bufnr, lockfiles) or vim.fs.root(bufnr, project_files)
+        -- Each package can use its own TypeScript version (Kinetic uses both
+        -- 5.7 and 5.9). Start from the owning package so its SDK wins.
+        local root = vim.fs.root(bufnr, { "package.json" }) or vim.fs.root(bufnr, project_files) or vim.fs.root(bufnr, lockfiles)
         if not root then
           local filename = vim.api.nvim_buf_get_name(bufnr)
           root = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
@@ -579,6 +595,7 @@ require("lazy").setup({
         },
         settings = {
           vtsls = {
+            autoUseWorkspaceTsdk = true,
             tsserver = {
               globalPlugins = {
                 {
@@ -593,6 +610,23 @@ require("lazy").setup({
         },
       })
 
+      vim.lsp.config("tailwindcss", {
+        settings = {
+          tailwindCSS = { classFunctions = { "cn", "clsx", "cva", "twMerge" } },
+        },
+      })
+      -- Tailwind owns its at-rule validation; retain ordinary CSS checks.
+      vim.lsp.config("cssls", {
+        settings = {
+          css = { lint = { unknownAtRules = "ignore" } },
+          scss = { lint = { unknownAtRules = "ignore" } },
+        },
+      })
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = { runtime = { version = "LuaJIT" }, diagnostics = { globals = { "vim" } }, workspace = { checkThirdParty = false } },
+        },
+      })
       -- vscode-eslint-language-server's legacy FlatESLint path was removed in
       -- ESLint 10. The standard ESLint class supports flat config and works
       -- across ESLint 9 and 10.
@@ -619,17 +653,18 @@ require("lazy").setup({
       require("mason-lspconfig").setup({
         ensure_installed = {
           "vtsls", "eslint", "vue_ls", "svelte", "astro", "tailwindcss", "emmet_language_server",
-          "html", "cssls", "jsonls", "clangd", "pyright", "rust_analyzer", "jdtls",
+          "html", "cssls", "jsonls", "yamlls", "bashls", "dockerls", "lua_ls",
+          "clangd", "pyright", "rust_analyzer", "jdtls",
         },
         automatic_enable = { exclude = { "ts_ls" } },
       })
     end,
   },
 
-  { "williamboman/mason.nvim", config = true }, -- NOTE: `config = true` calls mason.setup()
+  { "mason-org/mason.nvim", config = true }, -- NOTE: `config = true` calls mason.setup()
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
-    dependencies = { "williamboman/mason.nvim" },
+    dependencies = { "mason-org/mason.nvim" },
     opts = {
       ensure_installed = {
         "black", "clang-format", "google-java-format", "prettier",
@@ -661,11 +696,27 @@ require("lazy").setup({
   { "theHamsta/nvim-dap-virtual-text", dependencies = { "mfussenegger/nvim-dap" }, opts = { commented = true } },
   {
     "jay-babu/mason-nvim-dap.nvim",
-    dependencies = { "williamboman/mason.nvim", "mfussenegger/nvim-dap" },
+    dependencies = { "mason-org/mason.nvim", "mfussenegger/nvim-dap" },
     opts = {
       automatic_installation = true,
       ensure_installed = { "python", "js", "codelldb", "coreclr", "php", "bash" },
       handlers = {
+        js = function(config)
+          -- mason-nvim-dap installs js-debug but does not define its adapter.
+          config.adapters = {
+            type = "server",
+            host = "127.0.0.1",
+            port = "${port}",
+            executable = {
+              command = platform.first_executable(platform.is_windows and { "js-debug-adapter.cmd", "js-debug-adapter" } or { "js-debug-adapter" }),
+              args = { "${port}", "127.0.0.1" },
+            },
+          }
+          require("mason-nvim-dap").default_setup(config)
+          local dap = require("dap")
+          dap.adapters["pwa-node"] = dap.adapters.js
+          dap.adapters["pwa-chrome"] = dap.adapters.js
+        end,
         codelldb = function(config)
           require("mason-nvim-dap").default_setup(config)
         end,
@@ -746,8 +797,19 @@ do
       program = "${file}",
       cwd = "${workspaceFolder}",
     },
+    {
+      type = "pwa-node",
+      request = "attach",
+      name = "Attach to Node / Next.js (inspect)",
+      processId = require("dap.utils").pick_process,
+      cwd = "${workspaceFolder}",
+      sourceMaps = true,
+      skipFiles = { "<node_internals>/**", "**/node_modules/**" },
+    },
   }
   dap.configurations.typescript = dap.configurations.javascript
+  dap.configurations.javascriptreact = dap.configurations.javascript
+  dap.configurations.typescriptreact = dap.configurations.javascript
 end
 
 -- =========================================================================
@@ -760,6 +822,9 @@ map("n", "<leader>e", ":NvimTreeToggle<CR>", { desc = "Toggle File Explorer" })
 map("n", "<leader>w", ":w<CR>", { desc = "Write (save) file" })
 map("n", "<leader>q", ":q<CR>", { desc = "Quit window" })
 map("n", "<leader>/", ":nohlsearch<CR>", { desc = "Clear search highlight" })
+map({ "n", "v" }, "<leader>F", function()
+  require("conform").format({ async = true, lsp_format = "fallback" })
+end, { desc = "Format buffer or selection" })
 
 --File creation
 map("n", "<leader>fn", function()
@@ -796,9 +861,13 @@ map("n", "<leader>gs", ":Telescope git_status<CR>", { desc = "Git Status" })
 map("n", "<leader>or", ":OverseerRun<CR>", { desc = "Overseer: Run Task" })
 map("n", "<leader>ol", ":OverseerToggle<CR>", { desc = "Overseer: Toggle" })
 map("n", "<leader>oq", ":OverseerQuickAction<CR>", { desc = "Overseer: Quick Action" })
-map("n", "<leader>ob", function() require("project_tasks").run("build") end, { desc = "npm: Build" })
-map("n", "<leader>ot", function() require("project_tasks").run("test") end, { desc = "npm: Test" })
-map("n", "<leader>od", function() require("project_tasks").run("dev") end, { desc = "npm: Dev server" })
+map("n", "<leader>ob", function() require("project_tasks").run("build") end, { desc = "Package: Build" })
+map("n", "<leader>ot", function() require("project_tasks").run("test") end, { desc = "Package: Test" })
+map("n", "<leader>od", function() require("project_tasks").run("dev") end, { desc = "Package: Dev server" })
+map("n", "<leader>oc", function() require("project_tasks").run("typecheck") end, { desc = "Package: Typecheck" })
+map("n", "<leader>oB", function() require("project_tasks").run("build", true) end, { desc = "Workspace: Build" })
+map("n", "<leader>oT", function() require("project_tasks").run("test", true) end, { desc = "Workspace: Test" })
+map("n", "<leader>oC", function() require("project_tasks").run("typecheck", true) end, { desc = "Workspace: Typecheck" })
 
 
 -- CopilotChat
