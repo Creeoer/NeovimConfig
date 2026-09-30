@@ -104,8 +104,8 @@ The terminal profile currently uses these plugins:
 | Themes and UI              | `nightfox.nvim` (Carbonfox), `tokyonight.nvim`, `rose-pine`, `lualine.nvim`, `bufferline.nvim`, `noice.nvim`, `nvim-notify`, `indent-blankline.nvim`, `which-key.nvim`                 |
 | Files and navigation       | `telescope.nvim`, `telescope-project.nvim`, `nvim-tree.lua`, `mini.files`, `harpoon` (Harpoon 2), `flash.nvim`                                                            |
 | Editing and completion     | `nvim-treesitter`, `nvim-autopairs`, `Comment.nvim`, `nvim-surround`, `nvim-cmp`, `LuaSnip`, `friendly-snippets`, `cmp-nvim-lsp`, `cmp-buffer`, `cmp-path`, `cmp_luasnip` |
-| Git and diagnostics        | `gitsigns.nvim`, `diffview.nvim`, `trouble.nvim`                                                                                                                          |
-| Markdown                   | `render-markdown.nvim`, `live-preview.nvim`, Marksman LSP                                                                                                               |
+| Git and diagnostics        | `gitsigns.nvim`, `diffview.nvim`, `trouble.nvim`, `nvim-lint` (SQLFluff)                                                                                                   |
+| Markdown                   | `render-markdown.nvim`, `live-preview.nvim`, Marksman LSP, `obsidian.nvim`                                                                                                |
 | LSP, formatting, and tasks | `nvim-lspconfig`, `mason.nvim`, `mason-lspconfig.nvim`, `mason-tool-installer.nvim`, `conform.nvim`, `overseer.nvim`, `toggleterm.nvim`, `nvim-java`                      |
 | Debugging                  | `nvim-dap`, `nvim-dap-ui`, `nvim-dap-virtual-text`, `mason-nvim-dap.nvim`, `nvim-dap-python`, `nvim-dap-go`                                                               |
 | AI                         | `copilot.lua`, `CopilotChat.nvim`, `codecompanion.nvim`                                                                                                                   |
@@ -267,6 +267,60 @@ In the VSCode Neovim profile, `Space m p` opens VSCode's built-in Markdown
 preview to the side. VSCode provides Markdown editing and preview in that
 profile.
 
+## Obsidian vault
+
+Terminal Neovim uses the maintained `obsidian-nvim/obsidian.nvim` plugin in
+`~/Documents/Frank's Notes`. Open any Markdown note in that vault to activate
+wiki-link completion (`[[`), tag completion (`#`), navigation, backlinks,
+and note renaming through `Space r n` or `:Obsidian rename NEWNAME`.
+Renaming updates references across the vault; save the affected buffers afterward.
+Obsidian's LSP handles vault notes; Marksman handles other Markdown projects.
+The existing rendered buffer and browser preview remain available.
+
+| Shortcut | Action |
+| --- | --- |
+| `Space m n` | Create a note beside the current note |
+| `Space m s` | Search the vault |
+| `Space m b` | Show backlinks |
+| `Space m d` | Open/create today's daily note |
+| `Space m t` | Insert a template |
+| `Space m l` or normal-mode `Enter` on a link | Follow the link |
+
+New notes use lowercase title-based filenames (`Meeting Notes` becomes
+`meeting-notes.md`). Daily notes use `YYYY-MM-DD`
+in `Quick Notes/Daily`, templates come from `templates`, and attachments go in
+`./attachments` relative to the note. Frontmatter processing and the default
+frontmatter template are disabled so saving notes does not inject metadata.
+Obsidian Sync remains disabled; this edits the vault's existing local files.
+
+Set `NVIM_OBSIDIAN_VAULT` before starting Neovim to use another vault path.
+The plugin is inactive when that directory does not exist, and its shortcuts
+are local to vault notes. `:checkhealth obsidian` checks the integration.
+Clipboard image pasting (`:Obsidian paste_img`) additionally requires `pngpaste`
+on macOS, `wl-clipboard`/`xclip` on Linux, or the documented Windows clipboard
+dependencies. These optional image tools are not installed automatically.
+
+## SQL diagnostics
+
+SQL buffers use SQLFluff, installed by Mason, through `nvim-lint`. Checks run
+on opening a file, saving, and leaving Insert mode; `:SqlLint` runs them manually.
+Unsaved buffer text is checked without executing SQL or changing the file.
+Parsing errors appear as errors and style violations as warnings in the gutter,
+underlines, inline messages, and Trouble. `[d`/`]d` navigate diagnostics;
+`Space l d` shows the message under the cursor.
+
+SQLFluff reads its native project/user configuration (`.sqlfluff`, `pyproject.toml`,
+and other supported files) using the SQL file's directory, even if Neovim was
+launched elsewhere. PostgreSQL is the fallback when no dialect is configured;
+set `dialect` in a project's SQLFluff configuration for other databases. Its
+standard style rules apply unless overridden by that configuration.
+If installation is incomplete, use `:MasonInstall sqlfluff`, then `:SqlLint`.
+
+These checks cover `.sql` files. They do not validate SQL inside JS/TS/Python
+strings, the contents of dollar-quoted procedural bodies, or whether a table or
+column exists in your database. SQL is not automatically reformatted on save.
+The VSCode Neovim profile continues to use VSCode's language tooling.
+
 ## Kinetic / pnpm workspaces
 
 Run `pnpm install --frozen-lockfile` from Kinetic's root before editing.
@@ -285,7 +339,7 @@ when a config is present, and `Space F` runs Prettier explicitly.
 
 JSON, YAML, Python, Dockerfile, shell, and Lua language servers are installed
 through Mason. Tree-sitter covers these languages plus PostgreSQL migration
-syntax. SQL highlighting does not require a database connection.
+syntax. SQL highlighting and SQLFluff diagnostics do not require a database connection.
 
 `Space d c` offers Node launch and attach configurations for JS/TS/JSX/TSX.
 For a Next.js process, start the app with Node's inspector enabled (for example,
@@ -328,6 +382,12 @@ emulator debugging have not been tested by these editor checks. Rust checks
 cover parser loading, type diagnostics, formatting, and Markdown code-fence
 injections. Markdown checks cover cross-file link definitions, heading outline,
 rendered decorations and toggle, formatting, and buffer-local editing options.
+Obsidian and SQL integration checks on macOS cover link completion, definitions,
+backlinks, rename updates, new/daily notes, templates, frontmatter preservation,
+ordinary Markdown and missing-vault startup, SQL parse errors and style warnings,
+unsaved edits, diagnostic clearing, and native SQLFluff project configuration.
+The Obsidian plugin was tested at v3.16.8 and SQLFluff at 4.3.0; these additions
+have not been tested on Windows.
 The preview checks cover HTTP asset delivery, bundled Markdown rendering,
 unsaved updates over WebSocket, and server shutdown; its browser UI has not
 been visually verified. Run

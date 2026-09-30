@@ -119,6 +119,14 @@ require("lazy").setup({
   },
   -- Markdown editing and preview
   {
+    "obsidian-nvim/obsidian.nvim",
+    version = "*",
+    ft = { "markdown" },
+    cond = function() return vim.fn.isdirectory(require("obsidian_vault").path()) == 1 end,
+    dependencies = { "nvim-telescope/telescope.nvim", "hrsh7th/cmp-nvim-lsp" },
+    opts = function() return require("obsidian_vault").options() end,
+  },
+  {
     "MeanderingProgrammer/render-markdown.nvim",
     ft = { "markdown" },
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
@@ -541,6 +549,13 @@ require("lazy").setup({
   -- Integrated terminal
   { "akinsho/toggleterm.nvim", version = "*", config = true },
 
+  -- SQL diagnostics are independent of language-server attachment.
+  {
+    "mfussenegger/nvim-lint",
+    ft = { "sql" },
+    config = function() require("sql_diagnostics").setup() end,
+  },
+
   -- ===================================================
   -- ===== LSP, Mason, and DAP Configuration Stack =====
   -- ===================================================
@@ -595,6 +610,14 @@ require("lazy").setup({
       -- Mason enables the installed server definitions from nvim-lspconfig.
       vim.lsp.config("*", {
         capabilities = capabilities,
+      })
+
+      vim.lsp.config("marksman", {
+        root_dir = function(bufnr, on_dir)
+          if require("obsidian_vault").is_note(bufnr) then return end
+          local root = vim.fs.root(bufnr, { ".marksman.toml", ".git" })
+          if root then on_dir(root) end
+        end,
       })
 
       local function typescript_root(bufnr, on_dir)
@@ -704,7 +727,7 @@ require("lazy").setup({
     opts = {
       ensure_installed = {
         "black", "clang-format", "google-java-format", "prettier",
-        "prettierd", "ruff", "stylua",
+        "prettierd", "ruff", "stylua", "sqlfluff",
       },
       run_on_start = true,
       start_delay = 500,
@@ -887,6 +910,9 @@ map("n", "<leader>/", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 map({ "n", "v" }, "<leader>F", function()
   require("conform").format({ async = true, lsp_format = "fallback" })
 end, { desc = "Format buffer or selection" })
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "Diagnostic: Previous" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Diagnostic: Next" })
+map("n", "<leader>ld", vim.diagnostic.open_float, { desc = "Diagnostic: Details" })
 
 --File creation
 map("n", "<leader>fn", function()
