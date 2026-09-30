@@ -165,6 +165,64 @@ Useful entry points are:
 - `Space o B`, `Space o T`, `Space o C`: build, test, or typecheck the entire workspace
 - `Space o r`: choose any available Overseer task or package script
 
+## Python development
+
+Pyright supplies type checking, completion, navigation, and hover information.
+Ruff supplies lint diagnostics, code actions, import organization (`Space l o`),
+and formatting on save (`Space F` also formats explicitly). Ruff reads the
+project's `pyproject.toml`, `ruff.toml`, or `.ruff.toml` settings. Formatting
+does not automatically apply lint fixes; use `Space c a` to review those.
+
+Analysis, run tasks, and debugger launch configurations prefer an active
+`VIRTUAL_ENV` or `CONDA_PREFIX`, then a `.venv` or `venv` in the project or its
+parent workspace, then system Python. Virtualenv discovery stops at the Git
+root. Create the environment and install project dependencies before editing,
+for example `python3 -m venv .venv` on macOS/Linux. On Windows, use
+`python -m venv .venv`. Restart Pyright after changing environments; its
+`:LspPyrightSetPythonPath` command can also select an interpreter explicitly.
+
+- `Space p r`: run the current Python file from its project root
+- `Space p t`: run `python -m pytest` from the project root
+- `Space d c`: launch the current file, debug pytest, or attach to local debugpy
+- `Space d t` / `Space d T`: debug a test method / class using nvim-dap-python's
+  detected test runner (pytest, unittest, or Django)
+
+Install pytest in the project environment to use pytest tasks. Configure it in
+`pytest.ini` or `[tool.pytest.ini_options]` for single-test debugger detection.
+The debugger adapter runs from Mason's debugpy environment, independently of
+the interpreter running the project, so projects do not need debugpy for launch
+debugging. Attaching to an existing process requires that process to expose
+debugpy on the selected local port (default `5678`).
+
+## React Native and Expo
+
+React Native and Expo use the same `vtsls` completion, navigation, rename, TSX
+syntax highlighting, ESLint, and Prettier support as React web projects. Install
+the mobile app's dependencies and keep its own TypeScript configuration:
+`@react-native/typescript-config` for a React Native CLI app or
+`expo/tsconfig.base` for Expo. React Native includes its own types; do not add
+the obsolete `@types/react-native` package.
+
+These shortcuts run the existing scripts in the mobile package containing the
+current buffer, using its declared package manager, and open their output in a
+terminal split:
+
+- `Space m s`: run `start` (Metro / Expo)
+- `Space m i`: run `ios`
+- `Space m a`: run `android`
+
+The package must depend on `react-native` or `expo` and define the corresponding
+script. Use `Space o t` for its test script and `Space o c` for its typecheck
+script. In the Metro terminal, enter terminal mode (`i`) to send keys; use
+`Ctrl+\ Ctrl+n` to return to normal mode.
+
+For Hermes JavaScript debugging, use [React Native DevTools](https://reactnative.dev/docs/react-native-devtools).
+Open it from the app's Dev Menu or press `j` in the React Native CLI terminal.
+The Node / Next.js DAP configurations debug Node processes; they do not debug
+the mobile Hermes runtime. Native modules use Android Studio or Xcode debugging.
+Device builds also require the project's Android SDK/JDK or Xcode/CocoaPods
+setup; the Neovim configuration does not provision those platform SDKs.
+
 ## Kinetic / pnpm workspaces
 
 Run `pnpm install --frozen-lockfile` from Kinetic's root before editing.
@@ -217,8 +275,13 @@ The configuration has been validated on Windows 11 and macOS with Neovim
 TypeScript error diagnostics, Tailwind v4 class completion, Prettier output,
 syntax parsers, pnpm task selection, and a real Node debugger launch stopping
 at entry. The VSCode profile passes a headless startup check with the extension
-API stubbed; test its UI in VSCode itself. Run `:checkhealth` after installing
-on each machine to verify its local tools.
+API stubbed; test its UI in VSCode itself. Python checks cover virtualenv-only
+imports, Pyright and Ruff diagnostics, Ruff formatting, run and pytest tasks,
+and a real debugpy launch using the project interpreter. React Native checks
+cover TSX prop completion and diagnostics against React Native 0.87.1, Prettier,
+and React Native / Expo script and package-manager selection. Device builds and
+emulator debugging have not been tested by these editor checks. Run
+`:checkhealth` after installing on each machine to verify its local tools.
 
 Missing language servers, debuggers, compilers, runtimes, or agent CLIs affect
 only their related workflows; the base editor and other plugins still load.

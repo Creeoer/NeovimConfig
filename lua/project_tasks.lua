@@ -79,4 +79,25 @@ function M.run(script, workspace)
   task:start()
 end
 
+function M.mobile_spec(script)
+  local root = project_root(0)
+  local package = root and package_json(root)
+  local dependencies = package
+    and vim.tbl_extend("force", package.dependencies or {}, package.devDependencies or {}) or {}
+  assert(dependencies["react-native"] or dependencies.expo,
+    "No React Native or Expo package found above the current buffer")
+  return M.spec(script)
+end
+
+function M.run_mobile(script)
+  local ok, spec = pcall(M.mobile_spec, script)
+  if not ok then
+    vim.notify(spec, vim.log.levels.WARN)
+    return
+  end
+  local task = require("overseer").new_task(spec)
+  task:start()
+  task:open_output("horizontal")
+end
+
 return M

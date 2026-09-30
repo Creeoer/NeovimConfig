@@ -126,6 +126,7 @@ require("lazy").setup({
           "builtin",
           "user.c_cpp_build_run",
           "user.python_run",
+          "user.python_test",
           "user.java_build_run",
           "user.npm_build",
           "user.npm_test",
@@ -478,7 +479,7 @@ require("lazy").setup({
     config = function()
       require("conform").setup({
         formatters_by_ft = {
-          python = { "black", "ruff" },
+          python = { "ruff_format" },
           lua = { "stylua" },
           java = { "google-java-format" },
           c = { "clang-format" },
@@ -535,6 +536,10 @@ require("lazy").setup({
         group = lsp_group,
         callback = function(args)
           local bufnr = args.buf
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.name == "ruff" then
+            client.server_capabilities.hoverProvider = false
+          end
           local map = function(m, l, r, desc)
             vim.keymap.set(m, l, r, { buffer = bufnr, silent = true, desc = desc })
           end
@@ -553,7 +558,7 @@ require("lazy").setup({
               apply = true,
               context = { only = { "source.organizeImports" }, diagnostics = {} },
             })
-          end, "TypeScript: Organize imports")
+          end, "LSP: Organize imports")
           map("n", "<leader>lx", function()
             if vim.fn.exists(":LspEslintFixAll") == 2 then
               vim.cmd.LspEslintFixAll()
@@ -627,6 +632,15 @@ require("lazy").setup({
           Lua = { runtime = { version = "LuaJIT" }, diagnostics = { globals = { "vim" } }, workspace = { checkThirdParty = false } },
         },
       })
+      vim.lsp.config("pyright", {
+        before_init = function(_, config)
+          config.settings = config.settings or {}
+          config.settings.python = config.settings.python or {}
+          config.settings.python.pythonPath = config.settings.python.pythonPath
+            or require("python_env").python(config.root_dir)
+        end,
+        settings = { pyright = { disableOrganizeImports = true } },
+      })
       -- vscode-eslint-language-server's legacy FlatESLint path was removed in
       -- ESLint 10. The standard ESLint class supports flat config and works
       -- across ESLint 9 and 10.
@@ -654,7 +668,7 @@ require("lazy").setup({
         ensure_installed = {
           "vtsls", "eslint", "vue_ls", "svelte", "astro", "tailwindcss", "emmet_language_server",
           "html", "cssls", "jsonls", "yamlls", "bashls", "dockerls", "lua_ls",
-          "clangd", "pyright", "rust_analyzer", "jdtls",
+          "clangd", "pyright", "ruff", "rust_analyzer", "jdtls",
         },
         automatic_enable = { exclude = { "ts_ls" } },
       })
@@ -750,10 +764,36 @@ require("toggleterm").setup({ open_mapping = [[<c-\>]], direction = "horizontal"
 
 -- DAP setup (language-specific configurations)
 do
-  pcall(require("dap-python").setup, platform.python())
+  local python_env = require("python_env")
+  local debugpy_python = vim.fs.joinpath(vim.fn.stdpath("data"), "mason", "packages", "debugpy", "venv",
+    platform.is_windows and "Scripts/python.exe" or "bin/python")
+  local dap_python = require("dap-python")
+  dap_python.setup(debugpy_python, { include_configs = false })
+  dap_python.resolve_python = function() return python_env.python(0) end
   pcall(require("dap-go").setup)
 
   local dap = require("dap")
+  dap.configurations.python = {
+    {
+      type = "python", request = "launch", name = "Python: Current file",
+      program = "${file}", console = "integratedTerminal",
+      pythonPath = function() return python_env.python(0) end,
+      cwd = function() return python_env.root(0) end,
+    },
+    {
+      type = "python", request = "launch", name = "Python: pytest",
+      module = "pytest", console = "integratedTerminal",
+      pythonPath = function() return python_env.python(0) end,
+      cwd = function() return python_env.root(0) end,
+    },
+    {
+      type = "python", request = "attach", name = "Python: Attach (debugpy)",
+      connect = function()
+        local port = tonumber(vim.fn.input("Local debugpy port [5678]: ")) or 5678
+        return { host = "127.0.0.1", port = port }
+      end,
+    },
+  }
   dap.configurations.cpp = {
     {
       name = "Launch file",
@@ -868,6 +908,11 @@ map("n", "<leader>oc", function() require("project_tasks").run("typecheck") end,
 map("n", "<leader>oB", function() require("project_tasks").run("build", true) end, { desc = "Workspace: Build" })
 map("n", "<leader>oT", function() require("project_tasks").run("test", true) end, { desc = "Workspace: Test" })
 map("n", "<leader>oC", function() require("project_tasks").run("typecheck", true) end, { desc = "Workspace: Typecheck" })
+map("n", "<leader>pr", function() require("python_env").run("run") end, { desc = "Python: Run file" })
+map("n", "<leader>pt", function() require("python_env").run("pytest") end, { desc = "Python: pytest" })
+map("n", "<leader>ms", function() require("project_tasks").run_mobile("start") end, { desc = "Mobile: Start Metro / Expo" })
+map("n", "<leader>mi", function() require("project_tasks").run_mobile("ios") end, { desc = "Mobile: Run iOS" })
+map("n", "<leader>ma", function() require("project_tasks").run_mobile("android") end, { desc = "Mobile: Run Android" })
 
 
 -- CopilotChat
@@ -908,6 +953,8 @@ do
   map("n", "<leader>dr", dap.restart, { desc = "DAP: Restart" })
   map("n", "<leader>dx", dap.terminate, { desc = "DAP: Stop / Terminate" })
   map("n", "<leader>dR", dap.repl.toggle, { desc = "DAP: Toggle REPL" })
+  map("n", "<leader>dt", function() require("dap-python").test_method() end, { desc = "Python: Debug test method" })
+  map("n", "<leader>dT", function() require("dap-python").test_class() end, { desc = "Python: Debug test class" })
 
   if dapui_ok then
     map("n", "<leader>dU", dapui.toggle, { desc = "DAP: Toggle UI" })

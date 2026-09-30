@@ -76,7 +76,7 @@ server.
 | N    | `<leader>rn` | Rename symbol                                                    |
 | N    | `[d`, `]d`   | Previous or next diagnostic                                      |
 | N/V  | `<leader>F`  | Format the buffer or selection with Conform, falling back to LSP |
-| N    | `<leader>lo` | Organize TypeScript imports                                      |
+| N    | `<leader>lo` | Organize TypeScript or Python imports                            |
 | N    | `<leader>lx` | Apply all ESLint fixes                                           |
 | I/S  | `<Tab>`      | Next completion item, expand snippet, or jump forward in snippet |
 | I/S  | `<S-Tab>`    | Previous completion item or jump backward in snippet             |
@@ -96,6 +96,11 @@ server.
 | N     | `<leader>oB` | Build the workspace                     |
 | N     | `<leader>oT` | Test the workspace                      |
 | N     | `<leader>oC` | Typecheck the workspace                 |
+| N     | `<leader>pr` | Run the Python file with the project interpreter |
+| N     | `<leader>pt` | Run pytest with the project interpreter |
+| N     | `<leader>ms` | Start Metro / Expo from the mobile package |
+| N     | `<leader>mi` | Run the mobile package's iOS script     |
+| N     | `<leader>ma` | Run the mobile package's Android script |
 | N/I/T | `<C-\>`      | Toggle the horizontal terminal           |
 
 ### AI
@@ -188,6 +193,8 @@ text for the current session.
 | N    | `<leader>dr` | Restart                            |
 | N    | `<leader>dx` | Stop/terminate                     |
 | N    | `<leader>dR` | Toggle the debug REPL              |
+| N    | `<leader>dt` | Debug the current Python test method |
+| N    | `<leader>dT` | Debug the current Python test class |
 | N    | `<leader>dU` | Toggle the debug UI                |
 | N/V  | `<leader>de` | Evaluate under cursor or selection |
 
