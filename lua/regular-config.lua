@@ -53,11 +53,11 @@ require("lazy").setup({
   { "folke/lazy.nvim", version = "*" },
   -- Theme
   {
-    "navarasu/onedark.nvim",
+    "EdenEast/nightfox.nvim",
+    lazy = false,
     priority = 1000,
     config = function()
-      require("onedark").setup({ style = "deep" })
-      require("onedark").load()
+      vim.cmd.colorscheme("carbonfox")
     end,
   },
   {
@@ -327,7 +327,7 @@ require("lazy").setup({
     config = function()
       require("lualine").setup({
         options = {
-          theme = "onedark",
+          theme = "auto",
           component_separators = { left = '', right = '' },
           section_separators = { left = '', right = '' },
         },

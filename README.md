@@ -7,6 +7,9 @@ Windows.
 The leader key is `Space`. See [KEYBINDINGS.md](KEYBINDINGS.md) for the full
 custom and plugin-specific keymap reference.
 
+Terminal Neovim uses Carbonfox from `nightfox.nvim`, with a matching status
+line. The VSCode profile uses VSCode's selected theme.
+
 ## Requirements
 
 - Neovim 0.12 or newer
@@ -98,7 +101,7 @@ The terminal profile currently uses these plugins:
 
 | Area                       | Plugins                                                                                                                                                                   |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Themes and UI              | `onedark.nvim`, `tokyonight.nvim`, `rose-pine`, `lualine.nvim`, `bufferline.nvim`, `noice.nvim`, `nvim-notify`, `indent-blankline.nvim`, `which-key.nvim`                 |
+| Themes and UI              | `nightfox.nvim` (Carbonfox), `tokyonight.nvim`, `rose-pine`, `lualine.nvim`, `bufferline.nvim`, `noice.nvim`, `nvim-notify`, `indent-blankline.nvim`, `which-key.nvim`                 |
 | Files and navigation       | `telescope.nvim`, `telescope-project.nvim`, `nvim-tree.lua`, `mini.files`, `harpoon` (Harpoon 2), `flash.nvim`                                                            |
 | Editing and completion     | `nvim-treesitter`, `nvim-autopairs`, `Comment.nvim`, `nvim-surround`, `nvim-cmp`, `LuaSnip`, `friendly-snippets`, `cmp-nvim-lsp`, `cmp-buffer`, `cmp-path`, `cmp_luasnip` |
 | Git and diagnostics        | `gitsigns.nvim`, `diffview.nvim`, `trouble.nvim`                                                                                                                          |
