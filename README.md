@@ -143,6 +143,10 @@ authentication:
 Use `:Copilot disable` and `:Copilot enable` to turn ghost text off or on for
 the current Neovim session.
 
+Copilot Chat opens in a floating window. Select code with `V` and press
+`Space c e` to explain it, or use `Space c c` in normal mode to toggle chat.
+Press `Esc`, then `q` to close the popup.
+
 ## TypeScript development
 
 TypeScript and isolated `.ts` files use `vtsls`. The setup also installs ESLint,

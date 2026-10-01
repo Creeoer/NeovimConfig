@@ -447,7 +447,19 @@ require("lazy").setup({
       },
     },
   },
-  { "CopilotC-Nvim/CopilotChat.nvim", branch = "main",     dependencies = { "nvim-lua/plenary.nvim", "zbirenbaum/copilot.lua" }, opts = {} },
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    branch = "main",
+    dependencies = { "nvim-lua/plenary.nvim", "zbirenbaum/copilot.lua" },
+    opts = {
+      window = {
+        layout = "float",
+        width = 0.8,
+        height = 0.7,
+        border = "rounded",
+      },
+    },
+  },
 
   -- Agent workflows (Codex ACP + authenticated Claude/Codex CLIs)
   {
